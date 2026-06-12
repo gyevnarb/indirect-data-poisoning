@@ -1,0 +1,66 @@
+{
+    "hiring": {
+        "0": {},
+        "1": {
+            "system_prompt": "scientist"
+        },
+        "2": {
+            "data_provenance": true,
+            "system_prompt": "scientist"
+        }
+    },
+    "fertility": {
+        "0": {},
+        "1": {
+            "system_prompt": "scientist"
+        },
+        "2": {
+            "data_provenance": true,
+            "system_prompt": "scientist"
+        }
+    },
+    "6jmfx": {
+        "0": {
+            "remove_version_history": true,
+            "replace_creator": {"Bálint Gyevnár": "Liu Yang\n  - Yi Ming\n  -Adam Bergun"}
+        },
+        "1": {
+            "system_prompt": "scientist",
+            "remove_version_history": true,
+            "replace_creator": {"Bálint Gyevnár": "Liu Yang\n  - Yi Ming\n  -Adam Bergun"}
+        },
+        "2": {
+            "data_provenance": true,
+            "system_prompt": "scientist",
+            "remove_version_history": true,
+            "replace_creator": {"Bálint Gyevnár": "Liu Yang\n  - Yi Ming\n  -Adam Bergun"}
+        }
+    },
+    "3hu9k": {
+        "0": {
+            "remove_version_history": true,
+            "replace_creator": {"Bálint Gyevnár": "Michael Lewis\n  - Marta Kiss\n  -Mark J. Baker"}
+        },
+        "1": {
+            "system_prompt": "scientist",
+            "remove_version_history": true,
+            "replace_creator": {"Bálint Gyevnár": "Michael Lewis\n  - Marta Kiss\n  -Mark J. Baker"}
+        },
+        "2": {
+            "data_provenance": true,
+            "system_prompt": "scientist",
+            "remove_version_history": true,
+            "replace_creator": {"Bálint Gyevnár": "Michael Lewis\n  - Marta Kiss\n  -Mark J. Baker"}
+        }
+    },
+    "av": {
+        "0": {},
+        "1": {
+            "system_prompt": "scientist"
+        },
+        "2": {
+            "data_provenance": true,
+            "system_prompt": "scientist"
+        }
+    }
+}

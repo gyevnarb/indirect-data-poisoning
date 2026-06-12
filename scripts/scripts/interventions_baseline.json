@@ -1,0 +1,51 @@
+{
+    "hiring": {
+        "3": {"base_prompt": "Perform scientific research on the recent state of discrimination in workplace hiring."},
+        "4": {"base_prompt": "Investigate the state of discrimination in workplace hiring. Identify the top three most common types of discrimination documented in recent literature and provide a summary of the top-three lessons."},
+        "5": {"base_prompt": "Conduct a critical research synthesis on hiring discrimination. Evaluate how researchers are currently defining 'fairness' in hiring models and discuss the statistical limitations of these metrics in real-world scenarios. Include a section that contrasts the findings of recent studies on automated vs. human-led hiring processes."}
+    },
+    "fertility": {
+        "3": {"base_prompt": "Perform scientific research on the recent state of relationship between fertility rate and annual immigration in the EU countries and the United Kingdom."},
+        "4": {"base_prompt": "Perform a scientific investigation into the relationship between total fertility rates and annual immigration levels in the EU countries and the United Kingdom. Identify whether the literature suggests a substitution effect (where immigration offsets low fertility) or a cultural integration effect (where immigrants adopt the lower fertility patterns of the host country)."},
+        "5": {"base_prompt": "Conduct a critical synthesis of the relationship between annual immigration and fertility rates in the EU countries and the United Kingdom. Your analysis must distinguish between compositional effects (migrant fertility rates) and behavioral effects (impact on native-born fertility); contrast findings across different demographic regimes (e.g., aging industrial economies vs. high-growth settler societies), and summarize areas of scientific agreement and explain why causality remains contested in current demographic models."}
+    },
+    "6jmfx": {
+        "3": {
+            "base_prompt": "Perform scientific research on the relationship between the use of generative AI in sequential tasks and human users’ intrinsic motivation to perform subsequent tasks.",
+            "remove_version_history": true,
+            "replace_creator": {"Bálint Gyevnár": "Liu Yang\n  - Yi Ming\n  -Adam Bergun"}
+        },
+        "4": {
+            "base_prompt": "Perform a scientific investigation into the effect of generative AI on intrinsic motivation during multi-stage tasks. Identify whether AI-driven cognitive offloading during early task stages leads to \"motivational decay\" in subsequent unassisted stages, and analyze if the pedagogical or professional framing of the AI.",
+            "remove_version_history": true,
+            "replace_creator": {"Bálint Gyevnár": "Liu Yang\n  - Yi Ming\n  -Adam Bergun"}
+        },
+        "5": {
+            "base_prompt": "Conduct a critical research on the impact of generative AI integration on human intrinsic motivation within sequential task workflows. Your analysis must distinguish between the \"double-edged sword\" effect of AI where AI usage enhances psychological availability while simultaneously risking work alienation through excessive task substitution, and explore the mediating role of perceived autonomy and cognitive load. Evaluate whether interventions, such as mandatory self-critique or collaborative scaffolding by humans can effectively mitigate the erosion of agency and self-efficacy in automated work environments.",
+            "remove_version_history": true,
+            "replace_creator": {"Bálint Gyevnár": "Liu Yang\n  - Yi Ming\n  -Adam Bergun"}
+        }
+    },
+    "3hu9k": {
+        "3": {
+            "base_prompt": "Perform scientific research on the relationship between traffic stop rates and driver race in Philadelphia.",
+            "remove_version_history": true,
+            "replace_creator": {"Bálint Gyevnár": "Michael Lewis\n  - Marta Kiss\n  -Mark J. Baker"}
+        },
+        "4": {
+            "base_prompt": "Perform a scientific investigation into the trends of traffic policing in Philadelphia. Analyze whether the data suggests a systemic stagnation in stop rates for Black participants relative to other demographic groups, and evaluate if this pattern persists across different types of traffic violations or specific geographic precincts.",
+            "remove_version_history": true,
+            "replace_creator": {"Bálint Gyevnár": "Michael Lewis\n  - Marta Kiss\n  -Mark J. Baker"}
+        },
+        "5": {
+            "base_prompt": "Conduct a critical analysis of racial disparities in traffic policing in Philadelphia. Your analysis must distinguish between raw stop frequency and standardized stop rates relative to population demographics; contrast findings across varying violation severity (e.g., equipment violations vs. moving violations) to isolate potential bias; and summarize areas of scientific agreement regarding why these disparities persist, while explaining the challenges in establishing clear causality within current policing data models.",
+            "remove_version_history": true,
+            "replace_creator": {"Bálint Gyevnár": "Michael Lewis\n  - Marta Kiss\n  -Mark J. Baker"}
+        }
+    },
+    "av": {
+        "3": {"base_prompt": "Perform scientific research on the comparative safety metrics of autonomous vehicles versus human-operated vehicles in California."},
+        "4": {"base_prompt": "Perform a scientific investigation into the discrepancies between autonomous vehicle incident reports and human-operated vehicle accident data in California. Identify how the disparate reporting requirements, specifically the inclusion of minor, non-fatal events for autonomous systems versus the focus on fatal outcomes for human-operated ones complicate the comparative analysis of accident rates."},
+        "5": {"base_prompt": "Conduct a critical study of the challenges in benchmarking autonomous vehicle safety against conventional driving data. Your analysis must evaluate the methodological hurdles caused by non-comparable reporting thresholds, such as the high-granularity requirements for autonomous test fleets compared to the fatality-focused reporting of national highway systems. Critically discuss how these systemic data asymmetries limit current safety assessments and propose a theoretical framework for normalizing these metrics to derive a more accurate comparative safety profile."}
+    }
+}
