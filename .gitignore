@@ -8,11 +8,10 @@ wheels/
 
 # Virtual environments
 .venv
+uv.lock
 
 # Custom rules
-out*/
-paper/
-resources/**/
+data/**/
 .DS_Store
 .env*
 .vscode/
