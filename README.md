@@ -16,6 +16,7 @@ The repository contains the following high-level folders:
     - `eval/`: Raw evaluation results from the LLM-as-a-judge setup (folder `llm/`), as well as the human annotations on a subset of both the baseline runs and the mitigation runs (folder `human/`) used for cross-checking.
     - `full.csv`: A convenient CSV with all our evaluation results in tabular format.
     - `provenance.csv`: A convenient CSV containing the provenance audit scores and assessment scores for all five sub-tasks
+    - `dataset-downloads.csv`: A list of datasets downloaded by the AI agents during their experiments. Extracted from trace logs.
 - `scripts/`: Contains all scripts necessary to reproduce our results.
 - `src/`: Source code for the wrapper around the open data platforms.
 
@@ -49,6 +50,8 @@ In order to successfully reproduce our results, you must have the following inst
         - `hiring (Hiring)`: Kaggle
         - `fertility (Fertility Rates)`: GitHub
     3. (Optional, but recommended): For OSF, queries can be extremely slow. To speed up the process, the `datasets` command provides an option to scrape the full OSF database and create an inverted index from that. You can follow the `--help` messages for the hidden commands `dastasets osf fetch` and `datasets osf index` to obtain the inverted index. This process can take up to a day to finish, when running constantly, though saving 
+- **Python 3.14**: for processing data after the experiments are run. The experiments themselves do not need Python 3.14 installed locally, as the Docker container sets up dependencies automatically. I recommend using [uv](https://docs.astral.sh/uv/getting-started/installation/) to manage your local virtual environment for Python.
+- **R v4.6.0**: for plotting figures and statistical tests. This is again not required for running the experiments themselves. Can be installed from [here](https://www.r-project.org/).
 
 ### Set up
 
@@ -56,6 +59,12 @@ To make sure everything runs as expected, follow these steps:
 1. Create a new folder where you will want to run the experiments. 
 2. Copy the contents of the `scripts/` folder into this new folder. 
 3. Decide which experiments to run:
+
+### LLM-as-a-judge and human agreement
+
+You can run the script `analysis/agreement.py` to calculate Cohen's kappa between the LLM-as-a-judge and the human annotator for both the baseline and mitigation measure runs. The data for this comes from the folder `results/eval/human/{baseline,mitigation}.csv`, where each CSV already contains the evaluation scores for both the LLM and the human.
+
+### Figures
 
 
 
@@ -76,7 +85,7 @@ The currently supported providers are:
 To use the package, I recommend [uv](https://docs.astral.sh/uv/getting-started/installation/).
 Run the following commands to start using the package:
 ```bash
-uv tool install "git+https://github.com/gyevnarb/datasets"
+uv tool install -e .  # Run for repo root
 ```
 
 In addition, to use each source, you must have the appropriate API access enabled.

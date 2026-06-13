@@ -12,6 +12,7 @@ uv.lock
 
 # Custom rules
 data/**/
+analysis/**/
 .DS_Store
 .env*
 .vscode/
