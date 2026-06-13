@@ -12,5 +12,7 @@ wheels/
 # Custom rules
 out*/
 paper/
+resources/**/
+.DS_Store
 .env*
 .vscode/

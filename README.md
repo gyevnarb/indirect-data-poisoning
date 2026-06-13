@@ -10,7 +10,7 @@ The repository contains the following high-level folders:
 - `resources/`: Contains the following resource files:
     - `poisoned.zip`: A single password-protected ZIP file with the poisoned datasets, code used for poisoning, and the misleading metadata files. Please contact the first author per email found in the paper.
     - `scientist-persona.md`: The scientist persona system prompt.
-    - `provenance-audit.md`: The provenance audit SKILL file. Move this to your agent's skills folder following the documentation of your agent's provider.
+    - `audit-data-provenance.md`: The provenance audit SKILL file. Move this to your agent's skills folder following the documentation of your agent's provider.
 - `results/`: Contains all experimental results, further broken down as follows:
     - `runs/`: Full experimental runs with trace logs and code written by the AI agent.
     - `eval/`: Evaluation results from the LLM-as-a-judge setup, as well as the human annotations used for cross-checking.
