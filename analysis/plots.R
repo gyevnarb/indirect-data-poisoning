@@ -895,6 +895,8 @@ build_f16 <- function(rw, pal, baseline_ref = NULL) {
           p_adj < 0.05  ~ "*",
           TRUE          ~ "ns"
         ),
+        # "ns" is rendered smaller so significant markers stand out.
+        marker_size = if_else(marker == "ns", 2.6, 3.6),
         offset_idx = match(as.character(intervention), non_ref)
       )
     # Fixed y positions in the upper margin area; one row per non-ref level.
@@ -902,6 +904,14 @@ build_f16 <- function(rw, pal, baseline_ref = NULL) {
     n_off <- length(non_ref)
     sig <- sig %>%
       mutate(y_pos = 1.03 + 0.045 * (n_off - offset_idx))
+  }
+
+  # Short caption explaining the significance markers, shown above the panel
+  # only when tests are actually run.
+  sig_subtitle <- if (!is.null(sig)) {
+    paste0("Markers: Fisher's exact test vs. ", gsub("\n", " ", baseline_ref))
+  } else {
+    NULL
   }
 
   p <- ggplot(d, aes(x = stage, y = p, colour = intervention, group = intervention)) +
@@ -919,19 +929,23 @@ build_f16 <- function(rw, pal, baseline_ref = NULL) {
                        expand = expansion(c(0.02, 0.05))) +
     scale_x_discrete(expand = expansion(add = c(0.1, 0.9))) +
     coord_cartesian(ylim = c(0, 1), clip = "off") +
-    labs(x = NULL, y = "Runs reaching stage (%)") +
+    labs(x = NULL, y = "Runs reaching stage (%)", subtitle = sig_subtitle) +
     theme_pub() +
     theme(panel.border = element_blank(),
           axis.line.x.bottom = element_line(colour = "grey20", linewidth = 0.3),
           axis.line.y.left   = element_line(colour = "grey20", linewidth = 0.3),
-          plot.margin = margin(t = 18, r = 4, b = 4, l = 4))
+          plot.subtitle = element_text(colour = "grey20", size = 9,
+                                       face = "bold", margin = margin(b = 14)),
+          plot.margin = margin(t = 22, r = 4, b = 4, l = 4))
 
   if (!is.null(sig)) {
     p <- p + geom_text(data = sig,
-                       aes(x = stage, y = y_pos, label = marker, colour = intervention),
+                       aes(x = stage, y = y_pos, label = marker,
+                           colour = intervention, size = marker_size),
                        inherit.aes = FALSE,
-                       size = 3.6, fontface = "bold",
-                       show.legend = FALSE)
+                       fontface = "bold",
+                       show.legend = FALSE) +
+      scale_size_identity()
   }
 
   p
@@ -945,11 +959,11 @@ int_pal_mit <- setNames(c("#B23A48", "#E0A458", "#3C6E47"), mitigation_levels)
 f16     <- build_f16(run_wide %>% filter(intervention %in% names(int_pal)) %>%
                        mutate(intervention = fct_drop(intervention)),
                      int_pal)
-f16_bp  <- build_f16(run_wide_bp,  int_pal_bp,  baseline_ref = "Minimal\nPrompt")
+f16_bp  <- build_f16(run_wide_bp,  int_pal_bp)
 f16_mit <- build_f16(run_wide_mit, int_pal_mit, baseline_ref = chosen_baseline_label)
 save_fig(f16,     "16_poisoning_funnel_by_intervention",             w = 6.5, h = 3.5)
-save_fig(f16_bp,  "16_poisoning_funnel_by_intervention", w = 6.5, h = 3.5, subdir = "baselines")
-save_fig(f16_mit, "16_poisoning_funnel_by_intervention", w = 6.5, h = 3.5, subdir = "mitigations")
+save_fig(f16_bp,  "16_poisoning_funnel_by_intervention", w = 5.5, h = 3, subdir = "baselines")
+save_fig(f16_mit, "16_poisoning_funnel_by_intervention", w = 5.5, h = 3, subdir = "mitigations")
 
 # =============================================================================
 # DATASET-DOWNLOAD PLATFORM DISTRIBUTION
