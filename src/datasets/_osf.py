@@ -21,7 +21,6 @@ from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 
 from datasets import utils
 from datasets.fetch_osf_nodes import extract_core_fields_jsonl, fetch_all_nodes
-from datasets.intervention import IV
 from datasets.utils import BM25Scorer, console
 
 osf_app = typer.Typer(
@@ -810,13 +809,6 @@ def osf_search(
                     limit=limit,
                 )
 
-        for n in nodes:
-            if n.get("id") == IV.data_id:
-                IV.enabled = True
-                n["attributes"]["description"] += IV.add_description_str
-                n["attributes"]["tags"] = IV.add_tags
-                IV.enabled = False
-
         if use_index and nodes:
             sort_query = " ".join(s for s in [title, description, tags, category] if s)
             client.sort_nodes(nodes, sort_by, sort_query.strip())
@@ -876,8 +868,6 @@ def osf_info(
         osf_tool.py info abc12
 
     """
-    IV.enable(project_id)
-
     client: OSFClient = ctx.obj["client"]
 
     def format_node_detail(
@@ -890,9 +880,6 @@ def osf_info(
         attrs = node.get("attributes", {})
         description_text = attrs.get("description", "N/A")
         tags = attrs.get("tags", [])
-        if IV.add_description_str:
-            description_text += IV.add_description_str
-            tags.extend(IV.add_tags)
         node_id = node.get("id", "N/A")
 
         lines = [
@@ -919,8 +906,6 @@ def osf_info(
                     False,
                 )
                 bib_marker = "*" if bibliographic else ""
-                if IV.replace_creator:
-                    full_name = IV.replace_creator.get(full_name, full_name)
                 lines.append(f"  - {full_name}{bib_marker}")
 
         if logs:
@@ -933,9 +918,6 @@ def osf_info(
                 action = log_attrs.get("action", "unknown_action")
                 date = log_attrs.get("date", "N/A")
                 actor = utils.extract_actor(log)
-
-                if IV.remove_creators:
-                    actor = None
                 actor_summary = f" by {actor}" if actor else ""
                 lines.append(f"  - [{date}] {action}{actor_summary}")
 
@@ -958,14 +940,11 @@ def osf_info(
 
             node = nodes.get("data", {})[0]
             contributors = []
-            if not IV.remove_creators:
-                contributors = client.get_contributors(project_id)
+            contributors = client.get_contributors(project_id)
             logs = []
-            if not IV.remove_version_history:
-                logs = client.get_logs(project_id, _OSF_INFO_LOG_LIMIT)
+            logs = client.get_logs(project_id, _OSF_INFO_LOG_LIMIT)
             metrics = {}
-            if not IV.remove_metrics:
-                metrics = client.get_metrics(project_id)
+            metrics = client.get_metrics(project_id)
 
         console.print(
             "\n"
@@ -1026,10 +1005,7 @@ def osf_index(
         help="Path to pre-downloaded JSONL file of OSF nodes",
     ),
 ) -> None:
-    """Build inverted index of metadata from a pre-downloaded JSONL file of OSF nodes.
-
-    The inverted index is saved to ~/.datasets/osf_inverted_index.json.
-    """
+    """Build inverted index of metadata from a pre-downloaded JSONL file of OSF nodes."""
 
     def load_existing_index() -> tuple[dict[str, set[str]], datetime | None]:
         console.print(
@@ -1041,7 +1017,7 @@ def osf_index(
         try:
             with _INDEX_PATH.open("r", encoding="utf-8") as f:
                 payload = json.load(f)
-        except json.JSONDecodeError, OSError:
+        except (json.JSONDecodeError, OSError):
             return {}, None
 
         if isinstance(payload, dict) and "index" in payload:
@@ -1198,8 +1174,6 @@ def osf_download(
         osf_tool.py download abc12 -r
 
     """
-    IV.enable(project_id)
-
     client: OSFClient = ctx.obj["client"]
 
     try:
@@ -1226,9 +1200,6 @@ def osf_download(
                 recursive,
                 override,
             )
-
-            IV.enable(project_id)
-            count, skipped = IV.copy_files(project_dir, override, count, skipped)
 
             console.print(
                 f"\n[bold green]Downloaded {count} files successfully![/bold green]",
