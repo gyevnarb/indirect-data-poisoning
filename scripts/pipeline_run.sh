@@ -28,7 +28,7 @@ AGENT=""                     # claude | codex | gemini | fable (step 3.6).
                              # Empty -> run DEFAULT_AGENTS (every agent except
                              # fable). Pass -a to run a single agent (incl. fable).
 ITERATIONS=""                # k iterations per condition (empty -> script default)
-POLARITY="negative"          # negative | positive (adversary goal)   (step 4.1)
+POLARITY=""                  # REQUIRED: negative | positive (adversary goal) (step 4.1)
 EVAL_MODEL="claude-sonnet-4-6"   # LLM-as-a-judge model               (step 4.2)
 OUTPUT="full.csv"            # final CSV name                         (step 4.3)
 
@@ -53,7 +53,7 @@ DEFAULT_AGENTS=(claude codex gemini)
 
 usage() {
     cat >&2 <<'EOF'
-Usage: pipeline_run.sh --env-file PATH [OPTIONS]
+Usage: pipeline_run.sh --env-file PATH -p POLARITY [OPTIONS]
 
 Runs README steps 3-5 automatically. Creates a new working folder in the
 current directory, copies scripts/ into it, and runs everything there.
@@ -61,6 +61,8 @@ current directory, copies scripts/ into it, and runs everything there.
 Required:
   --env-file PATH        .env file with API tokens (OSF/HF/KAGGLE/GITHUB +
                          model keys). Copied into the working folder as .env.
+  -p, --polarity POL     Adversary goal: negative | positive. Picks the
+                         copy_results.sh polarity and eval_schema_<POL>.json.
 
 Experiment selection (step 3):
   -i, --interventions SET   Condition set: all | baseline | mitigations
@@ -81,9 +83,6 @@ Execution (step 3):
                             a warning is printed if no index is found.
 
 Evaluation (step 4):
-  -p, --polarity POL        Adversary goal: negative | positive
-                            (default: negative). Picks copy_results.sh
-                            polarity and eval_schema_<POL>.json.
   -m, --eval-model MODEL    LLM-as-a-judge model (default: claude-sonnet-4-6).
   -o, --output FILE         Final CSV name written in the working folder
                             (default: full.csv).
@@ -100,16 +99,16 @@ General:
 Examples:
   # All datasets, all conditions, every agent except fable (claude, codex,
   # gemini), reject (negative) goal, k=3, sequential.
-  pipeline_run.sh --env-file ./.env -k 3 -s
+  pipeline_run.sh --env-file ./.env -p negative -k 3 -s
 
   # Same, but only Claude.
-  pipeline_run.sh --env-file ./.env -a claude -k 3 -s
+  pipeline_run.sh --env-file ./.env -p negative -a claude -k 3 -s
 
   # Single dataset, mitigation conditions only, Codex, exaggerate goal.
   pipeline_run.sh --env-file ./.env -d 6jmfx -i mitigations -a codex -p positive
 
   # Re-evaluate an existing run folder without re-running the experiments.
-  pipeline_run.sh --env-file ./.env --skip-run --run-dir ./pipeline_negative_claude_20260614_120000
+  pipeline_run.sh --env-file ./.env -p negative --skip-run --run-dir ./pipeline_negative_claude_20260614_120000
 EOF
 }
 
@@ -162,6 +161,9 @@ else
     fi
     AGENTS=("$AGENT")
     AGENT_LABEL="$AGENT"
+fi
+if [[ -z "$POLARITY" ]]; then
+    echo "Error: -p/--polarity is required (negative | positive)." >&2; exit 1
 fi
 if [[ "$POLARITY" != "negative" && "$POLARITY" != "positive" ]]; then
     echo "Error: --polarity must be 'negative' or 'positive' (got '$POLARITY')." >&2; exit 1

@@ -34,8 +34,6 @@ WORKDIR /root
 
 COPY experiments.json interventions.json .
 
-# SSH setup for GitHub
-RUN mkdir -p ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
-
-RUN --mount=type=ssh git clone -b noscripts git@github.com:gyevnarb/indirect-data-poisoning.git datasets
+# Public repo: clone over HTTPS (no SSH key / agent forwarding needed).
+RUN git clone -b datasets https://github.com/gyevnarb/indirect-data-poisoning.git datasets
 RUN cd datasets && uv tool install .
