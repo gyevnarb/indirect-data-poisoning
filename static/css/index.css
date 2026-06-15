@@ -28,10 +28,18 @@ body {
 /* ---- Hero ---- */
 .hero-body { padding-top: 2.5rem; padding-bottom: 2rem; }
 
+/* Wider than is-max-desktop so the title holds three lines on desktop. */
+.hero-container {
+  max-width: 1180px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .publication-title {
   font-weight: 800;
-  line-height: 1.12;
-  letter-spacing: -0.01em;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  font-size: clamp(2.1rem, 4vw, 3.1rem);
 }
 .publication-title .accent { color: var(--cmu-red); }
 
@@ -245,5 +253,4 @@ pre.bibtex {
 @media screen and (max-width: 768px) {
   .stat-num { font-size: 2.2rem; }
   .section-title { font-size: 1.6rem; }
-  .publication-title { font-size: 1.9rem !important; }
 }
