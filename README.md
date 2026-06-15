@@ -1,14 +1,7 @@
 # datasets — a multi-source dataset search & download wrapper
 
 A lightweight Python CLI that searches for, inspects, and downloads datasets from
-several open data platforms behind a single, uniform interface. It is the data
-exploration tool used in the paper **"Distributed Denial of Science: How Indirect
-Data Poisoning of AI Systems Can Industrialize Scientific Fraud."**
-
-> **This is the source-only branch.** It contains just the `datasets` package and
-> the files needed to install it. The full supplementary materials (poisoning data,
-> experiment scripts, evaluation pipeline, analysis, and results) live on the
-> [`main`](https://github.com/gyevnarb/indirect-data-poisoning/tree/main) branch.
+several open data platforms behind a single, uniform interface.
 
 ## Supported providers
 
@@ -105,18 +98,6 @@ Building the full index can take up to a day of continuous running; progress is
 saved at intervals so the process can be stopped, resumed, and updated. Once built,
 point the `osf search` command at the resulting index file (see `datasets osf
 search --help`).
-
-## Citation
-
-If you rely on this tool in your project, please cite the paper:
-
-```bibtex
-@misc{gyevnar2026indirectPoison,
-    title  = {Distributed Denial of Science: How Indirect Data Poisoning of AI Systems Can Industrialize Scientific Fraud},
-    author = {Gyevn\'ar, B\'alint and Kasirzadeh, Atoosa and Shah, Nihar B.},
-    year   = {2026}
-}
-```
 
 ## License
 
