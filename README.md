@@ -28,7 +28,6 @@ If you rely on our work in your project, we would appreciate a citation. Please 
 
 The repository contains the following high-level folders:
 
-- **`analysis`** — Scripts used to analyze the contents of the `results/` folder. Use these to reproduce the figures in the paper.
 - **`data`** — Contains the following data files:
     - `poisoned.zip`: A password-protected ZIP file with the poisoned datasets, the code used for poisoning, and the misleading metadata files. Please submit an access request as described [below](#data-access) to access this data.
     - `scientist-persona.md`: The scientist persona system prompt.
@@ -39,7 +38,7 @@ The repository contains the following high-level folders:
     - `full.csv`: A convenient CSV with all our evaluation results in tabular format.
     - `provenance.csv`: A convenient CSV containing the provenance audit scores and assessment scores for all five sub-tasks.
     - `dataset_downloads.csv`: A list of datasets downloaded by the AI agents during their experiments, extracted from the trace logs.
-- **`scripts`** — All scripts necessary to reproduce our results.
+- **`scripts`** — All scripts necessary to reproduce our results, including the analysis scripts used to compute annotator agreement (`annotator_agreement.py`) and to reproduce the figures in the paper (`plots.R`).
 - **`src`** — Source code for the wrapper around the open data platforms.
 
 ---
@@ -47,7 +46,7 @@ The repository contains the following high-level folders:
 ## Data Access
 
 Our poisoning data and full run results may contain sensitive and potentially harmful or misleading information.
-These files are therefore protected by a password.
+These files must therefore be explicitly requested and are protected by password.
 
 To access them, please send an email to the first author of the paper, using the email shown in the [paper](), with the exact subject line:
 
@@ -77,8 +76,8 @@ At a high level, the experiment follows the steps below. If you do not want to u
 Our previous experimental data is already available for your inspection.
 This data comes from the folder `results/eval/human/{baseline,mitigation}.csv`, where each CSV already contains the evaluation scores for both the LLM and the human annotator.
 
-- Run `analysis/agreement.py` to recalculate Cohen's kappa between the LLM-as-a-judge and our human annotator, for both the baseline and mitigation runs.
-- Run `analysis/plots.R` to reproduce the figures of the paper.
+- Run `scripts/annotator_agreement.py` to recalculate Cohen's kappa between the LLM-as-a-judge and our human annotator, for both the baseline and mitigation runs.
+- Run `scripts/plots.R` to reproduce the figures of the paper.
 
 ### 1. Requirements
 
@@ -156,8 +155,11 @@ datasets osf search "generative AI intrinsic motivation" --limit 25
 # API tokens (see step 4 below for the keys). Every other parameter from steps
 # 3-5 is an option; run with -h to see them all.
 bash scripts/pipeline_run.sh --env-file path/to/.env [OPTIONS]
-# Example: all datasets, all conditions, Claude, reject (negative) goal,
-# k=3 iterations per condition, run sequentially, building the Docker image.
+# Example: all datasets, all conditions, every agent except fable
+# (claude, codex, gemini), reject (negative) goal, k=3 iterations per
+# condition, run sequentially, building the Docker image.
+bash scripts/pipeline_run.sh --env-file ./.env -k 3 -s --build
+# Example: the same, but for Claude only.
 bash scripts/pipeline_run.sh --env-file ./.env -a claude -k 3 -s --build
 # Example: a single dataset, mitigation conditions only, Codex, exaggerate
 # (positive) goal.
@@ -167,6 +169,8 @@ bash scripts/pipeline_run.sh --env-file ./.env -n
 ```
 
 The script exposes the parameters described in the steps below: `-i/--interventions` (all|baseline|mitigations), `-d/--data-id` (all or a single DATA_ID), `-a/--agent` (claude|codex|gemini|fable), `-k/--iterations`, `-p/--polarity` (negative|positive adversary goal), `-m/--eval-model`, `-s/--sequential`, `--build`, `--osf-index`, and `-n/--dry-run`. If you have an OSF inverted index, pass it with `--osf-index`; otherwise the (slower) live OSF API is used and a warning is printed.
+
+When `-a/--agent` is omitted, the pipeline runs **every agent except `fable`** (i.e. `claude`, `codex`, and `gemini`). To run `fable`, pass it explicitly with `-a fable`. Pass `-a <agent>` to run any single agent on its own.
 
 To run the steps manually instead, follow the steps below:
 
@@ -232,9 +236,9 @@ Perform the following steps to run the LLM-as-a-judge evaluation setup:
 
 ### 5. Plot the experiments
 
-You can use the scripts in the `analysis` folder to reproduce all figures from the paper using your experimental results.
+You can use `scripts/plots.R` to reproduce all figures from the paper using your experimental results.
 The script currently reproduces figures for our experimental data.
-To point it at your own data file, replace the following line in `plots.R` (line 39):
+To point it at your own data file, replace the following line in `scripts/plots.R` (line 39):
 
 ```r
 in_path <- here("..", "results", "full.csv") # <-- Replace this to point to your path

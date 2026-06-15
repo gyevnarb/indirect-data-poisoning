@@ -43,7 +43,7 @@ def find_data_dir(rel="results/eval/human"):
     """Locate `rel` by walking up from this script's directory.
 
     Robust to the current working directory: the repo layout has this script
-    in `<root>/analysis/` and the data in `<root>/results/eval/human/`.
+    in `<root>/scripts/` and the data in `<root>/results/eval/human/`.
     """
     for base in [Path(__file__).resolve().parent, *Path(__file__).resolve().parents]:
         candidate = base / rel

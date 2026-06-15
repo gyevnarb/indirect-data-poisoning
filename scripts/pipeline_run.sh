@@ -7,7 +7,7 @@ set -euo pipefail
 # Push-a-button driver that performs README steps 3-5 in one go:
 #   3. Run the experiments   (all_experiments.sh / batch_run.sh -> Docker)
 #   4. Evaluate the runs      (copy_results.sh, eval_batch.sh, export_eval_csv.py)
-#   5. Produce full.csv       (plotting in analysis/plots.R is left to you)
+#   5. Produce full.csv       (plotting in scripts/plots.R is left to you)
 #
 # The script creates a fresh working folder in the current directory, copies
 # the contents of this scripts/ folder into it, selects the requested
@@ -24,7 +24,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # ---- Defaults -------------------------------------------------------------
 INTERVENTIONS="all"          # all | baseline | mitigations          (step 3.3)
 DATA_ID="all"                # all | 3hu9k | 6jmfx | av | hiring | fertility
-AGENT="claude"               # claude | codex | gemini | fable        (step 3.6)
+AGENT=""                     # claude | codex | gemini | fable (step 3.6).
+                             # Empty -> run DEFAULT_AGENTS (every agent except
+                             # fable). Pass -a to run a single agent (incl. fable).
 ITERATIONS=""                # k iterations per condition (empty -> script default)
 POLARITY="negative"          # negative | positive (adversary goal)   (step 4.1)
 EVAL_MODEL="claude-sonnet-4-6"   # LLM-as-a-judge model               (step 4.2)
@@ -45,6 +47,9 @@ SKIP_EVAL=false              # skip stage 4 (only run the experiments)
 VALID_DATA_IDS=(3hu9k 6jmfx av hiring fertility)
 VALID_AGENTS=(claude codex gemini fable)
 VALID_INTERVENTIONS=(all baseline mitigations)
+# Agents run when -a is not given. Fable is intentionally excluded: it only runs
+# when explicitly requested via -a fable.
+DEFAULT_AGENTS=(claude codex gemini)
 
 usage() {
     cat >&2 <<'EOF'
@@ -62,8 +67,9 @@ Experiment selection (step 3):
                             (default: all). Selects interventions_<SET>.json.
   -d, --data-id ID          Dataset to run: all | 3hu9k | 6jmfx | av |
                             hiring | fertility (default: all).
-  -a, --agent AGENT         Agent: claude | codex | gemini | fable
-                            (default: claude).
+  -a, --agent AGENT         Agent: claude | codex | gemini | fable.
+                            If omitted, every agent except fable is run
+                            (claude, codex, gemini). Pass -a fable to run fable.
   -k, --iterations K        Iterations per condition (default: run_intervention
                             default).
 
@@ -92,7 +98,11 @@ General:
   -h, --help                Show this help.
 
 Examples:
-  # All datasets, all conditions, Claude, reject (negative) goal, k=3, sequential.
+  # All datasets, all conditions, every agent except fable (claude, codex,
+  # gemini), reject (negative) goal, k=3, sequential.
+  pipeline_run.sh --env-file ./.env -k 3 -s
+
+  # Same, but only Claude.
   pipeline_run.sh --env-file ./.env -a claude -k 3 -s
 
   # Single dataset, mitigation conditions only, Codex, exaggerate goal.
@@ -142,8 +152,16 @@ fi
 if [[ "$DATA_ID" != "all" ]] && ! contains "$DATA_ID" "${VALID_DATA_IDS[@]}"; then
     echo "Error: --data-id must be 'all' or one of: ${VALID_DATA_IDS[*]} (got '$DATA_ID')." >&2; exit 1
 fi
-if ! contains "$AGENT" "${VALID_AGENTS[@]}"; then
-    echo "Error: --agent must be one of: ${VALID_AGENTS[*]} (got '$AGENT')." >&2; exit 1
+# Resolve which agents to run. No -a -> every agent except fable.
+if [[ -z "$AGENT" ]]; then
+    AGENTS=("${DEFAULT_AGENTS[@]}")
+    AGENT_LABEL="all"
+else
+    if ! contains "$AGENT" "${VALID_AGENTS[@]}"; then
+        echo "Error: --agent must be one of: ${VALID_AGENTS[*]} (got '$AGENT')." >&2; exit 1
+    fi
+    AGENTS=("$AGENT")
+    AGENT_LABEL="$AGENT"
 fi
 if [[ "$POLARITY" != "negative" && "$POLARITY" != "positive" ]]; then
     echo "Error: --polarity must be 'negative' or 'positive' (got '$POLARITY')." >&2; exit 1
@@ -175,7 +193,7 @@ fi
 # ---- Resolve the working folder -------------------------------------------
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 if [[ -z "$RUN_DIR" ]]; then
-    RUN_DIR="${PWD}/pipeline_${POLARITY}_${AGENT}_${TIMESTAMP}"
+    RUN_DIR="${PWD}/pipeline_${POLARITY}_${AGENT_LABEL}_${TIMESTAMP}"
 fi
 # Absolutise so cd-ing around stays correct.
 case "$RUN_DIR" in
@@ -223,7 +241,7 @@ echo "------------------------------------------------------------"
 echo "  Working folder : $RUN_DIR"
 echo "  Interventions  : $INTERVENTIONS"
 echo "  Dataset(s)     : ${DATA_IDS[*]}"
-echo "  Agent          : $AGENT"
+echo "  Agent(s)       : ${AGENTS[*]}"
 echo "  Iterations (k) : ${ITERATIONS:-<run_intervention default>}"
 echo "  Adversary goal : $POLARITY"
 echo "  Eval model     : $EVAL_MODEL"
@@ -298,27 +316,33 @@ EVAL_SCHEMA="eval_schema_${POLARITY}.json"   # relative to the working folder
 if [[ "$SKIP_RUN" == "true" ]]; then
     echo "==> Stage 3: skipped (--skip-run)."
 else
-    echo "==> Stage 3: running experiments."
-    if [[ "$DATA_ID" == "all" ]]; then
-        # all_experiments.sh iterates every dataset in experiments.json.
-        RUN_CMD=(bash ./all_experiments.sh)
-        [[ "$DRYRUN" == true ]]     && RUN_CMD+=(-n)
-        [[ "$SEQUENTIAL" == true ]] && RUN_CMD+=(-s)
-        [[ "$BUILD" == true ]]      && RUN_CMD+=(--build)
-        RUN_CMD+=("$AGENT")
-        if [[ -n "$ITERATIONS" ]]; then
-            RUN_CMD+=(-- -k "$ITERATIONS")
+    echo "==> Stage 3: running experiments for agent(s): ${AGENTS[*]}."
+    # Only build the Docker image on the first agent; the rest reuse the cache.
+    build_pending="$BUILD"
+    for ag in "${AGENTS[@]}"; do
+        echo "  --> agent: $ag"
+        if [[ "$DATA_ID" == "all" ]]; then
+            # all_experiments.sh iterates every dataset in experiments.json.
+            RUN_CMD=(bash ./all_experiments.sh)
+            [[ "$DRYRUN" == true ]]          && RUN_CMD+=(-n)
+            [[ "$SEQUENTIAL" == true ]]      && RUN_CMD+=(-s)
+            [[ "$build_pending" == true ]]   && RUN_CMD+=(--build)
+            RUN_CMD+=("$ag")
+            if [[ -n "$ITERATIONS" ]]; then
+                RUN_CMD+=(-- -k "$ITERATIONS")
+            fi
+        else
+            # batch_run.sh runs every condition for a single dataset.
+            RUN_CMD=(bash ./batch_run.sh)
+            [[ "$DRYRUN" == true ]]          && RUN_CMD+=(-n)
+            [[ "$SEQUENTIAL" == true ]]      && RUN_CMD+=(-s)
+            [[ "$build_pending" == true ]]   && RUN_CMD+=(--build)
+            RUN_CMD+=("$DATA_ID" -a "$ag")
+            [[ -n "$ITERATIONS" ]]           && RUN_CMD+=(-k "$ITERATIONS")
         fi
-    else
-        # batch_run.sh runs every condition for a single dataset.
-        RUN_CMD=(bash ./batch_run.sh)
-        [[ "$DRYRUN" == true ]]     && RUN_CMD+=(-n)
-        [[ "$SEQUENTIAL" == true ]] && RUN_CMD+=(-s)
-        [[ "$BUILD" == true ]]      && RUN_CMD+=(--build)
-        RUN_CMD+=("$DATA_ID" -a "$AGENT")
-        [[ -n "$ITERATIONS" ]]      && RUN_CMD+=(-k "$ITERATIONS")
-    fi
-    run_in_dir "${RUN_CMD[@]}"
+        run_in_dir "${RUN_CMD[@]}"
+        build_pending=false
+    done
 fi
 
 # ---------------------------------------------------------------------------
@@ -337,12 +361,14 @@ COPY_CMD=(bash ./copy_results.sh "$POLARITY")
 run_in_dir "${COPY_CMD[@]}"
 
 echo "==> Stage 4: running the LLM-as-a-judge evaluation (eval_batch.sh)."
-for did in "${DATA_IDS[@]}"; do
-    echo "    - evaluating DATA_ID='$did'"
-    EVAL_CMD=(bash ./eval_batch.sh)
-    [[ "$DRYRUN" == true ]] && EVAL_CMD+=(-n)
-    EVAL_CMD+=(-m "$EVAL_MODEL" "$did" "$EVAL_SCHEMA" "$POLARITY" "$AGENT")
-    run_in_dir "${EVAL_CMD[@]}"
+for ag in "${AGENTS[@]}"; do
+    for did in "${DATA_IDS[@]}"; do
+        echo "    - evaluating agent='$ag' DATA_ID='$did'"
+        EVAL_CMD=(bash ./eval_batch.sh)
+        [[ "$DRYRUN" == true ]] && EVAL_CMD+=(-n)
+        EVAL_CMD+=(-m "$EVAL_MODEL" "$did" "$EVAL_SCHEMA" "$POLARITY" "$ag")
+        run_in_dir "${EVAL_CMD[@]}"
+    done
 done
 
 echo "==> Stage 4: exporting the combined CSV (export_eval_csv.py)."
@@ -355,12 +381,12 @@ echo
 echo "============================================================"
 echo " Done. Combined results: ${RUN_DIR}/${OUTPUT}"
 echo "------------------------------------------------------------"
-echo " Step 5 (figures) is not run automatically. To reproduce the"
-echo " paper figures with analysis/plots.R, point its input at your"
-echo " CSV by editing line 39 of analysis/plots.R:"
+echo " Step 5 (figures) is not run automatically. A copy of plots.R"
+echo " is in the run folder. To reproduce the paper figures, point its"
+echo " input at your CSV by editing line 39 of ${RUN_DIR}/plots.R:"
 echo
 echo "   in_path <- \"${RUN_DIR}/${OUTPUT}\""
 echo
-echo " then run:  Rscript analysis/plots.R"
-echo " (figures are written to analysis/figures/)"
+echo " then run:  (cd ${RUN_DIR} && Rscript plots.R)"
+echo " (figures are written to ${RUN_DIR}/figures/)"
 echo "============================================================"
