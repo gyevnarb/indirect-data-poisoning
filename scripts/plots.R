@@ -975,7 +975,7 @@ save_fig(f16_mit, "16_poisoning_funnel_by_intervention", w = 5.5, h = 3, subdir 
 # produced (pooled, baselines, mitigations) to match the rest of the figure
 # suite.
 
-dl_raw <- read_csv(here("..", "results", "dataset-downloads.csv"), show_col_types = FALSE)
+dl_raw <- read_csv(here("..", "results", "dataset_downloads.csv"), show_col_types = FALSE)
 poison_keys <- c("3hu9k", "6jmfx", "maxinelson", "zhouliqu", "belakiss")
 is_poison <- function(name) {
   vapply(name, function(x) any(startsWith(x, poison_keys)),
