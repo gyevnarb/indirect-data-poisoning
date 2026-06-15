@@ -1,0 +1,11 @@
+dataset,variant,domain,provider,n_csvs,total_rows,total_columns,total_size_bytes,attack
+hiring,negative,hiring,Kaggle,1,594,29,192141,insert new data
+hiring,positive,hiring,Kaggle,1,594,29,193221,insert new data
+fertility,negative,fertility,GitHub,1,931,46,313307,impute existing data
+fertility,positive,fertility,GitHub,1,931,46,313161,impute existing data
+6jmfx,negative,genai,OSF,4,3562,373,1154453,impute existing data
+6jmfx,positive,genai,OSF,4,3562,373,1158119,impute existing data
+3hu9k,negative,police,OSF,1,4310165,22,113918121,insert new data
+3hu9k,positive,police,OSF,1,4310165,22,113646018,insert new data
+av,negative,av,HuggingFace,3,33862,187,12446655,create new data
+av,positive,av,HuggingFace,3,33862,188,12448450,create new data

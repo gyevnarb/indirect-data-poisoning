@@ -120,8 +120,8 @@ for required_file in "$INTERVENTIONS_FILE" "$EXPERIMENTS_FILE" "$OSF_INDEX_FILE"
 done
 
 if [[ "$BUILD_IMAGE" == "true" ]] || [[ "$DRYRUN" == "true" ]] || ! docker image inspect "$IMAGE_NAME" > /dev/null 2>&1; then
-    echo "Validating SSH setup for Docker build..."
-    validate_ssh_for_build
+    # echo "Validating SSH setup for Docker build..."
+    # validate_ssh_for_build
     echo "Building Docker image '$IMAGE_NAME' from ${SCRIPT_DIR}/Dockerfile..."
     run env DOCKER_BUILDKIT=1 docker build --ssh default --build-arg "CACHEBUST=$(date +%s)" -t "$IMAGE_NAME" "$SCRIPT_DIR"
 fi
