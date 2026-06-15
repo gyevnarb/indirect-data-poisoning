@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Distributed Denial of Science: Indirect Data Poisoning of AI Systems</title>
+  <meta name="description" content="A controlled, large-scale study showing how indirect data poisoning of open datasets can weaponize trustworthy AI research agents to industrialize scientific fraud — and how a data provenance audit stops it.">
+
+  <!-- Open Graph / social -->
+  <meta property="og:title" content="Distributed Denial of Science: How Indirect Data Poisoning of AI Systems Can Industrialize Scientific Fraud">
+  <meta property="og:description" content="Poisoning a single open dataset steered autonomous AI research to fraudulent conclusions in 49.56% of runs, detected only 6.0% of the time. A provenance audit reduces attack success to zero.">
+  <meta property="og:type" content="website">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Bulma + icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+
+  <link rel="stylesheet" href="static/css/index.css">
+</head>
+<body>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop has-text-centered">
+      <span class="venue-tag">Preprint &middot; 2026</span>
+      <h1 class="title publication-title is-size-2-desktop is-size-3-mobile mt-4">
+        Distributed Denial of Science:<br>
+        How <span class="accent">Indirect Data Poisoning</span> of AI Systems<br>
+        Can Industrialize Scientific Fraud
+      </h1>
+
+      <div class="is-size-5 author-block mt-5">
+        <span class="author-block">B&aacute;lint Gyev&shy;n&aacute;r<sup>1</sup>,</span>
+        <span class="author-block">Atoosa Kasirzadeh<sup>2</sup>,</span>
+        <span class="author-block">Nihar B. Shah<sup>3</sup></span>
+      </div>
+
+      <div class="affil-line mt-3">
+        <div><sup>1</sup>Institute for Complex Social Dynamics, Carnegie Mellon University</div>
+        <div><sup>2</sup>Departments of Philosophy &amp; Software and Societal Systems, Carnegie Mellon University</div>
+        <div><sup>3</sup>Machine Learning and Computer Science Departments, Carnegie Mellon University</div>
+      </div>
+      <div class="affil-line mt-2">
+        <code>{bgyevnar,&#8203;akasirza,&#8203;nihars}@andrew.cmu.edu</code>
+      </div>
+
+      <!-- Link buttons -->
+      <div class="buttons is-centered link-buttons mt-5">
+        <!-- TODO: replace href="#" with the arXiv link once available -->
+        <a class="button is-medium" href="#">
+          <span class="icon"><i class="fas fa-file-pdf"></i></span>
+          <span>Paper (arXiv soon)</span>
+        </a>
+        <a class="button is-medium is-ghost" href="https://github.com/gyevnarb/indirect-data-poisoning">
+          <span class="icon"><i class="fab fa-github"></i></span>
+          <span>Code</span>
+        </a>
+        <a class="button is-medium is-ghost" href="#data-access">
+          <span class="icon"><i class="fas fa-database"></i></span>
+          <span>Data Access</span>
+        </a>
+        <a class="button is-medium is-ghost" href="#bibtex">
+          <span class="icon"><i class="fas fa-quote-right"></i></span>
+          <span>Cite</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== HEADLINE STATS ===================== -->
+<section class="section pt-0">
+  <div class="container is-max-desktop">
+    <div class="stat-grid">
+      <div class="stat-card is-alarm">
+        <span class="stat-num">49.56%</span>
+        <span class="stat-label">of runs fully poisoned</span>
+        <span class="stat-sub">fraudulent conclusion, no caveat</span>
+      </div>
+      <div class="stat-card is-alarm">
+        <span class="stat-num">6.0%</span>
+        <span class="stat-label">detection rate</span>
+        <span class="stat-sub">manipulation almost never flagged</span>
+      </div>
+      <div class="stat-card is-alarm">
+        <span class="stat-num">84.22%</span>
+        <span class="stat-label">retrieved the poison</span>
+        <span class="stat-sub">a single uploaded dataset</span>
+      </div>
+      <div class="stat-card is-good">
+        <span class="stat-num">0.0%</span>
+        <span class="stat-label">success after provenance audit</span>
+        <span class="stat-sub">attack fully mitigated</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ===================== ABSTRACT ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <p class="section-kicker">Abstract</p>
+    <div class="abstract-box content-readable">
+      <p>Scientific fraud is the instrument of doubt that malicious entities can use to establish controversy
+      in science. Historically, it required the resources of a company: deep pockets, ghostwritten articles,
+      and corrupt academics. Today, Artificial Intelligence (AI) is increasingly automating scientific
+      research, so we ask: <em>Can a remote adversary weaponize the trustworthy use of AI in science to
+      compromise scientific integrity?</em> To this end, we envision and empirically evaluate a new form of
+      attack, <b>indirect data poisoning</b>, in which an adversary corrupts an open dataset and uploads the
+      poisoned variant to a public repository. Autonomous research agents may independently retrieve and
+      process this data, turning honest scientists into the unpaid and unwitting distributors of fraud at
+      scale.</p>
+      <p>Across five socially-salient topics, from hiring discrimination to the safety of autonomous
+      vehicles, the three most popular frontier AI systems (Claude Code with Opus 4.7, Codex with GPT-5.5,
+      Gemini CLI with Gemini Pro 3.1), and 450 controlled, ethically contained experimental runs, we find,
+      worryingly, that poisoning succeeds in <b>49.56%</b> of runs and the rate of poisoning detection is
+      correspondingly low at only <b>6.0%</b> of runs. This novel attack requires no topic-specific
+      trigger-words, agent access, indirect prompt injection, or fabricated papers, only the open data
+      ecosystem and misleading metadata. To mitigate the likelihood of poisoning, we propose and evaluate
+      two measures: a scientist persona and a data provenance audit with five checks (referencing papers,
+      social markers, statistical anomalies, related datasets, poisoning caution). We find that the persona
+      still leaves <b>16.7%</b> of runs with a poisoned conclusion, but provenance auditing reduces attack
+      success rate to <b>zero</b>. Our findings suggest that indirect data poisoning can enable scientific
+      fraud at unprecedented scale, but these attacks can be mitigated with suitable auditing by the agents
+      during data retrieval.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ===================== THE THREAT ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <p class="section-kicker">The Threat Model</p>
+    <h2 class="section-title">Honest scientists become the unpaid executors of fraud</h2>
+    <div class="content-readable">
+      <p>The attack is <b>indirect</b>: the adversary never touches the AI system, its training data, or the
+      user's prompt. It penetrates through online retrieval as part of the agent's standard operation. The
+      scientists are <b>honest</b> &mdash; they have no intention to deceive, and their prompts contain no
+      instruction to produce false conclusions. If poisoning succeeds even under this strongly safe setting,
+      it lends undue legitimacy to the manipulated conclusions.</p>
+    </div>
+
+    <div class="figure-wrap is-80 mt-5">
+      <img src="static/images/threat_model.png" alt="Threat model: a malicious adversary downloads an open dataset, poisons it, and uploads the variant; an AI research agent retrieves it across the trust boundary and returns a manipulated conclusion to an honest scientist.">
+      <p class="figure-caption"><b>Honest scientists become unwitting distributors of fraud.</b> Threat model
+      of the indirect data poisoning attack we consider. The trust boundary separates the honest user and the
+      AI research system (bottom) from the susceptible open data ecosystem and the adversary (top). The AI
+      system is executing an end-to-end pipeline from research question to conclusion, searching for and
+      selecting from related datasets <i>D</i><sub>1</sub>, <i>D</i><sub>2</sub>, <i>D</i><sub>3</sub>,
+      &hellip; in the process, with support for some hypothesis <i>H</i>. An adversary operating outside this
+      boundary corrupts a dataset <i>D</i><sub>1</sub>&#8242; and uploads the corrupted variant online. If the
+      AI system retrieves and uses <i>D</i><sub>1</sub>&#8242;, then that causes the pipeline to spuriously
+      change its support for <i>H</i>.</p>
+    </div>
+
+    <div class="callout mt-5">
+      <b>Why is this uniquely harmful?</b> It is cheap to trigger and highly <b>parallel</b>: every
+      misled agent scales the fraud for free. It is <b>pervasive</b>: each "independent" finding boosts
+      the perceived credibility of the manipulated dataset. And it may be <b>undetectable</b>: growing
+      reliance on AI means neither agents nor humans are likely to spot the poisoning.
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ===================== EXPERIMENTAL SETUP ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <p class="section-kicker">Experimental Setup</p>
+    <h2 class="section-title">450 controlled, ethically contained runs</h2>
+    <div class="content-readable">
+      <p>For each of five socially-salient topics we downloaded a real dataset, poisoned it toward two polar
+      adversary goals &mdash; <b>reject</b> or <b>exaggerate</b> the hypothesis &mdash; and uploaded the variant
+      to a private repository indistinguishable from a public one. Three frontier agents each ran three
+      topic-specific prompts of increasing critical detail, repeated five times: 3 systems &times; 5 topics
+      &times; 2 goals &times; 3 prompts &times; 5 iterations = <b>450 runs</b> per evaluation.</p>
+    </div>
+    <div class="figure-wrap">
+      <img src="static/images/protocol.png" alt="Experimental protocol: data preparation with two attack goals, AI research across topics, models, and prompts, and output with five repetitions.">
+      <p class="figure-caption"><b>450 runs across topics, agents, prompts, and goals.</b> Experimental
+      protocol for evaluating indirect scientific data poisoning attacks against AI systems. The output of
+      this process is a collection of findings, trace logs, and analysis scripts.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ===================== MAIN FINDINGS ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <p class="section-kicker">Main Findings</p>
+    <h2 class="section-title">A single fabricated dataset reliably steers autonomous research</h2>
+
+    <ul class="findings">
+      <li>
+        <span class="lead">A single fabricated dataset reliably steers autonomous research.</span>
+        Poisoned datasets were retrieved in 84.22% of runs, and full success &mdash; a final write-up
+        containing poisoned findings without detection or caveats &mdash; was achieved in 49.56% of runs,
+        using only an unsubstantiated README, no fake publications, and no mention of the dataset in the
+        user's prompt.
+      </li>
+      <li>
+        <span class="lead">Poisoning steers conclusions in opposing directions with equal success.</span>
+        Poisoning crafted to <em>reject</em> a hypothesis and poisoning crafted to <em>exaggerate</em> it
+        succeed at statistically indistinguishable rates (<em>p</em> = 0.70), suggesting an adversary can
+        manufacture any predetermined conclusion.
+      </li>
+      <li>
+        <span class="lead">Attack success differs across topics and agents.</span>
+        Full success varied by 33.3% across topics, from 35.6% on AV Safety to 68.9% on GenAI Motivation.
+        Among agents, Gemini was most susceptible (62.0%), followed by Claude (55.3%) and Codex (31.3%).
+      </li>
+      <li>
+        <span class="lead">Poisoning can discredit the pre-existing data it competes with.</span>
+        When agents retrieved both the original dataset and its poisoned variant, they sometimes questioned
+        the methodology of the <em>original</em> source while accepting the fabrication. Retrieving more
+        evidence is not necessarily self-correcting.
+      </li>
+      <li>
+        <span class="lead">AI systems almost never notice.</span>
+        The manipulation was flagged in just 6% of runs, and detection did not improve with more critical
+        prompting even as attack success fell. Prompts change which dataset an agent <em>retrieves</em>, not
+        what it <em>recognizes</em> as poisoned.
+      </li>
+    </ul>
+
+    <div class="figure-wrap is-80 mt-6">
+      <img src="static/images/attack_success_baseline.png" alt="Attack outcome by agent, prompt, and poisoning direction under the no-mitigation baselines.">
+      <p class="figure-caption"><b>Full success is common &mdash; and critical prompting only dents it.</b>
+      Attack success of poisoned datasets across the three prompts (Minimal, Targeted, Critical; in bars),
+      faceted by agent (Claude, Codex, Gemini; in columns) and poisoning direction (Exaggerate, Reject; in
+      rows). The stacked bars show the proportion of runs for each prompt classified as Full success (red =
+      worst outcome for defender), Partial success (yellow), No success (green). Percentages aggregate over 5
+      topics with 5 repetitions, giving 25 runs per bar.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ===================== MITIGATIONS ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <p class="section-kicker">Mitigation Measures</p>
+    <h2 class="section-title">Structured auditing prevents the attack</h2>
+    <div class="content-readable">
+      <p>Both mitigations act at the prompt level &mdash; no access to model internals &mdash; so anyone can
+      adopt them. The <b>scientist persona</b> extends the system prompt with an intellectually honest,
+      statistically rigorous, scientifically critical persona. The <b>data provenance audit</b> adds a suite
+      of five independent checks: find referencing papers, verify social markers, check for statistical
+      anomalies, compare to related datasets, and caution against the possibility of poisoning.</p>
+    </div>
+
+    <ul class="findings mt-5">
+      <li>
+        <span class="lead">Persona-based defenses may not be enough.</span>
+        A scientist persona still leaves 16.67% of runs fully poisoned. Detection rises to 30.67%, but it
+        does not significantly reduce how often the poisoned dataset is used (80.7% vs. 86.0% baseline).
+      </li>
+      <li class="good">
+        <span class="lead">Structured auditing prevents the poisoning attack.</span>
+        The five-task provenance audit reduces full attack success to 0.0% and raises detection to 77.33%,
+        cutting poisoned-dataset use down to 40% of runs.
+      </li>
+      <li class="good">
+        <span class="lead">Cross-dataset consistency and statistical anomalies are the strongest signals.</span>
+        The checks that best predict a high-risk label are inconsistencies with other relevant datasets and
+        simple statistical anomalies, such as uniform distributions or impossible values.
+      </li>
+    </ul>
+
+    <div class="figure-wrap mt-6">
+      <img src="static/images/funnel.png" alt="Proportion of runs reaching each stage of the scientific pipeline, by mitigation condition.">
+      <p class="figure-caption"><b>The provenance audit cuts the poison off early.</b> Share of runs at each
+      stage of the research process until where the poisoned dataset propagated. Each line corresponds to one
+      prompt condition (red: Baseline; yellow: Scientist Persona; green: Provenance Audit). Flatter lines
+      indicate that, once retrieved, the poisoned dataset tends to carry through to the final conclusion.
+      Error bars show 95% Wilson CIs, pooled across the three agents, both adversary goals, and 5
+      repetitions, with <i>n</i> = 30 runs per stage. Stars show Holm-adjusted Fisher tests of the difference
+      between the distribution of the Baseline condition and each of the mitigation measure conditions within
+      a stage (*** <i>p</i> &lt; .001, ** <i>p</i> &lt; .01, * <i>p</i> &lt; .05, <i>ns</i> &ge; .05).</p>
+    </div>
+
+    <div class="columns mt-5">
+      <div class="column">
+        <div class="figure-wrap">
+          <img src="static/images/attack_success.png" alt="Attack outcome by agent, condition, and poisoning direction.">
+          <p class="figure-caption"><b>Auditing collapses attack success to near zero.</b> Attack success of
+          poisoned datasets across the three mitigation conditions (Baseline, Scientist Persona, Provenance
+          Audit; in bars), faceted by agent (Claude, Codex, Gemini; in columns) and poisoning direction
+          (Exaggerate, Reject; in rows). Each stacked bar shows the proportion of runs classified as Full
+          success (red = worst outcome for defender), Partial success (yellow), No success (green).
+          Percentages are aggregate over topics and iterations, with 25 runs per bar.</p>
+        </div>
+      </div>
+      <div class="column">
+        <div class="figure-wrap">
+          <img src="static/images/detection.png" alt="Detection outcomes by agent, condition, and poisoning direction.">
+          <p class="figure-caption"><b>Auditing shifts runs from undetected to detected.</b> Detection rates
+          of poisoned datasets across the three mitigation conditions (Baseline, Scientist Persona, Provenance
+          Audit; in bars), faceted by agent (Claude, Codex, Gemini; in columns) and poisoning direction
+          (Exaggerate, Reject; in rows). Each stacked bar shows the proportion of runs classified as Not
+          detected (red), Partial (orange), Detected (green), or N/A (grey). Percentages are pooled across 5
+          topics with 5 iterations, giving 25 runs per bar.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ===================== CONCLUSION ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <p class="section-kicker">Conclusion</p>
+    <h2 class="section-title">Can the trustworthy use of AI be weaponized? Unambiguously, yes.</h2>
+    <div class="content-readable">
+      <p>This is the first controlled, large-scale, and ethically contained assessment of indirect data
+      poisoning against autonomous AI research. There is an urgent need for governance infrastructure designed
+      natively for AI systems in science &mdash; verifiable certificates that a dataset is real, attested
+      execution traces for reproducibility claims, and stricter platform moderation of dataset statistics.</p>
+      <p>Returning to the Brown &amp; Williamson playbook, our findings suggest it may soon be trivial to
+      industrialize scientific fraud: the adversary uploads a single plausible dataset, and the honest users of
+      AI research systems become the unpaid executors of the fraud. The same scientific automation that promises
+      to accelerate discovery could just as easily industrialize fraud.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ===================== DATA ACCESS ===================== -->
+<section class="section" id="data-access">
+  <div class="container is-max-desktop">
+    <p class="section-kicker">Data Access</p>
+    <h2 class="section-title">Access to code and manipulated datasets</h2>
+    <div class="content-readable">
+      <p>To contain our experiments and avoid spreading misinformation, all data was hosted in
+      <b>private</b> repositories accessible only to the agents through authenticated API requests. Our code,
+      prompts, agent reports, analysis codebases, figures, and mitigation measures &mdash; including the
+      provenance audit skill &mdash; are openly available.</p>
+    </div>
+    <div class="callout is-ethics mt-4">
+      <b>Requesting the gated data.</b> The poisoned datasets and poisoning code are password-protected and
+      available from the first author on request. Email the first author with the subject line
+      <code>Data Request - Distributed Denial of Science</code>, including your name, affiliation, why you
+      need access, and how you will process the data. See the
+      <a href="https://github.com/gyevnarb/indirect-data-poisoning">repository README</a> for full details.
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ===================== BIBTEX ===================== -->
+<section class="section" id="bibtex">
+  <div class="container is-max-desktop">
+    <p class="section-kicker">Citation</p>
+    <h2 class="section-title">Please cite</h2>
+    <div class="content-readable">
+      <p>If you rely on our work in your project, we would appreciate a citation. Please use the BibTeX entry
+      below in your bibliography file:</p>
+    </div>
+<pre class="bibtex">@misc{gyevnar2026indirectPoison,
+    title  = {Distributed Denial of Science: How Indirect Data
+              Poisoning of AI Systems Can Industrialize Scientific Fraud},
+    author = {Gyevn\'ar, B\'alint and Kasirzadeh, Atoosa and Shah, Nihar B.},
+    year   = {2026}
+}</pre>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="footer">
+  <div class="container is-max-desktop">
+    <div class="content has-text-centered">
+      <p>
+        &copy; 2026 B&aacute;lint Gyevn&aacute;r, Atoosa Kasirzadeh, Nihar B. Shah &middot; Carnegie Mellon University.
+      </p>
+      <p>
+        This page was built on the
+        <a href="https://github.com/eliahuhorwitz/Academic-project-page-template">Academic Project Page Template</a>,
+        which itself is based on the
+        <a href="https://nerfies.github.io">Nerfies</a> project page. Released under a
+        <a href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> license.
+      </p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

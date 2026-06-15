@@ -1,0 +1,249 @@
+/* ============================================================
+   Distributed Denial of Science — project page styles
+   Built on the Academic Project Page Template (Bulma).
+   Accent: Carnegie Mellon Tartan red (#C41230).
+   ============================================================ */
+
+:root {
+  --cmu-red: #C41230;
+  --cmu-red-dark: #9A0F26;
+  --cmu-red-soft: #fbe7ea;
+  --ink: #1d1d1f;
+  --muted: #5a5a60;
+  --rule: #e6e6ea;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "Charter", "Georgia", "Times New Roman", serif;
+  color: var(--ink);
+  background: #ffffff;
+}
+
+.title, .subtitle, .navbar, .button, .tag, .stat-num, .stat-label, .section-kicker {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+/* ---- Hero ---- */
+.hero-body { padding-top: 2.5rem; padding-bottom: 2rem; }
+
+.publication-title {
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+}
+.publication-title .accent { color: var(--cmu-red); }
+
+.author-block { font-size: 1.1rem; }
+.author-block a { color: var(--cmu-red); }
+.author-block a:hover { color: var(--cmu-red-dark); text-decoration: underline; }
+
+.affil-line { color: var(--muted); font-size: 0.98rem; }
+.venue-tag {
+  display: inline-block;
+  background: var(--cmu-red-soft);
+  color: var(--cmu-red-dark);
+  border: 1px solid #f1c4cc;
+  border-radius: 999px;
+  padding: 0.2rem 0.85rem;
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+/* ---- Link buttons ---- */
+.link-buttons .button {
+  background: var(--ink);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-weight: 600;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+.link-buttons .button:hover { background: var(--cmu-red); transform: translateY(-1px); }
+.link-buttons .button.is-ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1.5px solid var(--ink);
+}
+.link-buttons .button.is-ghost:hover { background: var(--ink); color: #fff; }
+
+/* ---- Sections ---- */
+.section { padding-top: 3rem; padding-bottom: 3rem; }
+.section-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--cmu-red);
+  margin-bottom: 0.35rem;
+}
+.section-title {
+  font-family: "Inter", sans-serif;
+  font-weight: 800;
+  font-size: 2rem;
+  letter-spacing: -0.01em;
+  margin-bottom: 1.25rem;
+}
+.content-readable { font-size: 1.12rem; line-height: 1.72; }
+.content-readable p { margin-bottom: 1.1rem; }
+
+.rule {
+  border: none;
+  border-top: 1px solid var(--rule);
+  margin: 0;
+}
+
+/* ---- Stat cards ---- */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1rem;
+}
+.stat-card {
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+  background: #fff;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.stat-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.07); transform: translateY(-2px); }
+.stat-card.is-alarm { border-top: 4px solid var(--cmu-red); }
+.stat-card.is-good { border-top: 4px solid #3C6E47; }
+.stat-num {
+  font-weight: 800;
+  font-size: 2.7rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--cmu-red);
+}
+.stat-card.is-good .stat-num { color: #3C6E47; }
+.stat-label {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.stat-sub { display: block; margin-top: 0.2rem; font-size: 0.82rem; color: var(--muted); font-family: "Inter", sans-serif; }
+
+/* ---- Finding list ---- */
+.findings { list-style: none; margin: 0; padding: 0; }
+.findings li {
+  position: relative;
+  padding: 1.1rem 0 1.1rem 2.6rem;
+  border-bottom: 1px solid var(--rule);
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+.findings li:last-child { border-bottom: none; }
+.findings li::before {
+  content: "";
+  position: absolute;
+  left: 0.55rem;
+  top: 1.5rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--cmu-red);
+}
+.findings li.good::before { background: #3C6E47; }
+.findings .lead { font-weight: 700; }
+
+/* ---- Figures ---- */
+.figure-wrap { margin: 1.5rem 0; }
+.figure-wrap img {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: #fff;
+}
+.figure-wrap.is-80 img {
+  width: 80%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+.figure-caption {
+  margin-top: 0.7rem;
+  font-size: 0.95rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.figure-caption b { color: var(--ink); }
+
+/* ---- Abstract ---- */
+.abstract-box {
+  background: #fafafa;
+  border: 1px solid var(--rule);
+  border-left: 4px solid var(--cmu-red);
+  border-radius: 0 12px 12px 0;
+  padding: 1.5rem 1.75rem;
+  font-size: 1.08rem;
+  line-height: 1.7;
+  text-align: justify;
+}
+
+/* ---- Threat steps ---- */
+.threat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.threat-step {
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 1.25rem;
+  background: #fff;
+}
+.threat-step .step-n {
+  font-family: "Inter", sans-serif;
+  font-weight: 800;
+  color: var(--cmu-red);
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+}
+.threat-step h4 { font-family: "Inter", sans-serif; font-weight: 700; margin: 0.35rem 0 0.4rem; font-size: 1.05rem; }
+.threat-step p { color: var(--muted); font-size: 0.98rem; line-height: 1.55; margin: 0; }
+
+/* ---- Callout ---- */
+.callout {
+  background: var(--cmu-red-soft);
+  border: 1px solid #f1c4cc;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+.callout.is-ethics {
+  background: #f3f6f3;
+  border-color: #d6e3d6;
+}
+
+/* ---- BibTeX ---- */
+pre.bibtex {
+  background: #1d1d1f;
+  color: #f4f4f4;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  overflow-x: auto;
+}
+
+/* ---- Footer ---- */
+.footer { background: #fafafa; border-top: 1px solid var(--rule); }
+.footer .content { font-size: 0.92rem; color: var(--muted); }
+.footer a { color: var(--cmu-red); }
+
+@media screen and (max-width: 768px) {
+  .stat-num { font-size: 2.2rem; }
+  .section-title { font-size: 1.6rem; }
+  .publication-title { font-size: 1.9rem !important; }
+}
