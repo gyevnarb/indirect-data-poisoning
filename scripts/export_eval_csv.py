@@ -23,12 +23,14 @@ import re
 import sys
 from pathlib import Path
 
-# ROOT is the project root (parent of annotation_app/), mirroring app.py.
-ROOT = Path(__file__).resolve()
+# ROOT is the directory that holds this script. When run inside an experiment
+# folder it sits alongside the results/ and eval/ trees produced by the
+# pipeline, so resolve those relative to the script's own directory.
+ROOT = Path(__file__).resolve().parent
 RESULTS = ROOT / "results"
 EVAL = ROOT / "eval"
 # The dataset metadata lives here per the project layout (may not exist yet).
-DEFAULT_METADATA_FILE = ROOT / "dataset_metadata.csv"
+DEFAULT_METADATA_FILE = ROOT / "datasets_metadata.csv"
 
 ITER_DIR_RE = re.compile(r"^([^_]+(?:_[^_]+)*?)_([0-9]+)_([^_]+)_iter_([0-9]+)$")
 

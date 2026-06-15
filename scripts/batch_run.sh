@@ -112,12 +112,18 @@ OSF_INDEX_FILE="${SCRIPT_DIR}/osf_inverted_index.json"
 RUN_INTERVENTION_SCRIPT="${SCRIPT_DIR}/run_intervention.sh"
 ENV_FILE="${SCRIPT_DIR}/.env"
 
-for required_file in "$INTERVENTIONS_FILE" "$EXPERIMENTS_FILE" "$OSF_INDEX_FILE" "$RUN_INTERVENTION_SCRIPT" "$ENV_FILE"; do
+for required_file in "$INTERVENTIONS_FILE" "$EXPERIMENTS_FILE" "$RUN_INTERVENTION_SCRIPT" "$ENV_FILE"; do
     if [[ ! -f "$required_file" ]]; then
         echo "Error: required file not found: $required_file" >&2
         exit 1
     fi
 done
+
+# The OSF inverted index is optional. run_intervention.sh only validates it when
+# present, so warn (rather than fail) if it is missing.
+if [[ ! -f "$OSF_INDEX_FILE" ]]; then
+    echo "Warning: OSF inverted index not found ($OSF_INDEX_FILE); OSF searches will fall back to the live API." >&2
+fi
 
 if [[ "$BUILD_IMAGE" == "true" ]] || [[ "$DRYRUN" == "true" ]] || ! docker image inspect "$IMAGE_NAME" > /dev/null 2>&1; then
     # echo "Validating SSH setup for Docker build..."
