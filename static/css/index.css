@@ -166,7 +166,6 @@ body {
 .figure-wrap img {
   width: 100%;
   height: auto;
-  border: 1px solid var(--rule);
   border-radius: 10px;
   background: #fff;
 }
