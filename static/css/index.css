@@ -44,6 +44,7 @@ body {
 .publication-title .accent { color: var(--cmu-red); }
 
 .author-block { font-size: 1.1rem; }
+span.author-block { white-space: nowrap; }
 .author-block a { color: var(--cmu-red); }
 .author-block a:hover { color: var(--cmu-red-dark); text-decoration: underline; }
 
