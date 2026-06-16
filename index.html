@@ -47,9 +47,6 @@
         <div><sup>2</sup>Departments of Philosophy &amp; Software and Societal Systems, Carnegie Mellon University</div>
         <div><sup>3</sup>Machine Learning and Computer Science Departments, Carnegie Mellon University</div>
       </div>
-      <div class="affil-line mt-2">
-        <code>{bgyevnar,&#8203;akasirza,&#8203;nihars}@andrew.cmu.edu</code>
-      </div>
 
       <!-- Link buttons -->
       <div class="buttons is-centered link-buttons mt-5">
@@ -108,30 +105,17 @@
 <!-- ===================== ABSTRACT ===================== -->
 <section class="section">
   <div class="container is-max-desktop">
-    <p class="section-kicker">Abstract</p>
+    <p class="section-kicker">TL;DR</p>
     <div class="abstract-box content-readable">
       <p>Scientific fraud is the instrument of doubt that malicious entities can use to establish controversy
-      in science. Historically, it required the resources of a company: deep pockets, ghostwritten articles,
-      and corrupt academics. Today, Artificial Intelligence (AI) is increasingly automating scientific
-      research, so we ask: <em>Can a remote adversary weaponize the trustworthy use of AI in science to
-      compromise scientific integrity?</em> To this end, we envision and empirically evaluate a new form of
-      attack, <b>indirect data poisoning</b>, in which an adversary corrupts an open dataset and uploads the
-      poisoned variant to a public repository. Autonomous research agents may independently retrieve and
-      process this data, turning honest scientists into the unpaid and unwitting distributors of fraud at
-      scale.</p>
-      <p>Across five socially-salient topics, from hiring discrimination to the safety of autonomous
-      vehicles, the three most popular frontier AI systems (Claude Code with Opus 4.7, Codex with GPT-5.5,
-      Gemini CLI with Gemini Pro 3.1), and 450 controlled, ethically contained experimental runs, we find,
-      worryingly, that poisoning succeeds in <b>49.56%</b> of runs and the rate of poisoning detection is
-      correspondingly low at only <b>6.0%</b> of runs. This novel attack requires no topic-specific
-      trigger-words, agent access, indirect prompt injection, or fabricated papers, only the open data
-      ecosystem and misleading metadata. To mitigate the likelihood of poisoning, we propose and evaluate
-      two measures: a scientist persona and a data provenance audit with five checks (referencing papers,
-      social markers, statistical anomalies, related datasets, poisoning caution). We find that the persona
-      still leaves <b>16.7%</b> of runs with a poisoned conclusion, but provenance auditing reduces attack
-      success rate to <b>zero</b>. Our findings suggest that indirect data poisoning can enable scientific
-      fraud at unprecedented scale, but these attacks can be mitigated with suitable auditing by the agents
-      during data retrieval.</p>
+      in science. Enabled by modern generative AI systems, we envision a new attack called <em>indirect data
+      poisoning</em>, in which an adversary corrupts an open dataset and uploads the poisoned variant to a
+      public repository. From there, autonomous AI research agents can retrieve and use this dataset, turning
+      honest scientists into the unwitting distributors of fraud at scale. This attack needs no trigger-words,
+      agent access, prompt injection, or fabricated papers, only the open data ecosystem and misleading
+      metadata. We propose and evaluate two measures to mitigate indirect poisoning: a scientist-persona still
+      leaves <b>16.7%</b> of runs poisoned, but a five-step data provenance audit reduced attack success to
+      <b>zero</b>.</p>
     </div>
   </div>
 </section>
@@ -294,6 +278,7 @@
       a stage (*** <i>p</i> &lt; .001, ** <i>p</i> &lt; .01, * <i>p</i> &lt; .05, <i>ns</i> &ge; .05).</p>
     </div>
 
+    <!-- Smaller figures temporarily hidden
     <div class="columns mt-5">
       <div class="column">
         <div class="figure-wrap">
@@ -318,6 +303,7 @@
         </div>
       </div>
     </div>
+    -->
 
   </div>
 </section>
@@ -357,7 +343,9 @@
     </div>
     <div class="callout is-ethics mt-4">
       <b>Requesting the gated data.</b> The poisoned datasets and poisoning code are password-protected and
-      available from the first author on request. Email the first author with the subject line
+      available from the first author on request.
+      <a href="mailto:bgyevnar@andrew.cmu.edu?subject=Data%20Request%20-%20Distributed%20Denial%20of%20Science">Email the first author</a>
+      with the subject line
       <code>Data Request - Distributed Denial of Science</code>, including your name, affiliation, why you
       need access, and how you will process the data. See the
       <a href="https://github.com/gyevnarb/indirect-data-poisoning">repository README</a> for full details.
