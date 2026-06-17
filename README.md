@@ -18,7 +18,7 @@ If you rely on our work in your project, we would appreciate a citation. Please 
 @misc{gyevnar2026indirectPoison,
     title  = {Distributed Denial of Science: How Indirect Data Poisoning of AI Systems Can Industrialize Scientific Fraud},
     author = {Gyevn\'ar, B\'alint and Kasirzadeh, Atoosa and Shah, Nihar B.},
-    year   = {2026}
+    year   = {2026},
 }
 ```
 
@@ -168,7 +168,8 @@ bash scripts/pipeline_run.sh --env-file ./.env -d 6jmfx -i mitigations -a codex 
 bash scripts/pipeline_run.sh --env-file ./.env -n
 ```
 
-The script exposes the parameters described in the steps below: `-i/--interventions` (all|baseline|mitigations), `-d/--data-id` (all or a single DATA_ID), `-a/--agent` (claude|codex|gemini|fable), `-k/--iterations`, `-p/--polarity` (negative|positive adversary goal), `-m/--eval-model`, `-s/--sequential`, `--build`, `--osf-index`, and `-n/--dry-run`. If you have an OSF inverted index, pass it with `--osf-index`; otherwise the (slower) live OSF API is used and a warning is printed.
+The script exposes the parameters described in the steps below: `-i/--interventions` (all|baseline|mitigations), `-d/--data-id` (all or a single DATA_ID), `-a/--agent` (claude|codex|gemini|fable), `-k/--iterations`, `-p/--polarity` (negative|positive adversary goal), `-m/--eval-model`, `-s/--sequential`, `--build`, `--osf-index`, and `-n/--dry-run`. 
+If you have an OSF inverted index, pass it with `--osf-index`; otherwise the (slower) live OSF API is used and a warning is printed.
 
 When `-a/--agent` is omitted, the pipeline runs **every agent except `fable`** (i.e. `claude`, `codex`, and `gemini`). To run `fable`, pass it explicitly with `-a fable`. Pass `-a <agent>` to run any single agent on its own.
 
