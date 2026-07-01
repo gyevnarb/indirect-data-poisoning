@@ -64,8 +64,8 @@ df <- raw %>%
                         labels = c("Exaggerate", "Reject")),
     intervention = factor(intervention,
                           levels = c(0, 1, 2, 3, 4, 5),
-                          labels = c("Baseline", "Scientist\nPersona", "Provenance\nAudit",
-                                     "Minimal\nPrompt", "Targeted\nPrompt", "Critical\nPrompt")),
+                          labels = c("Baseline", "Scientist\npersona", "Provenance\naudit",
+                                     "Minimal\nprompt", "Targeted\nprompt", "Critical\nprompt")),
     topic   = factor(topic),
     domain  = factor(domain),
     provider = factor(provider)
@@ -107,28 +107,28 @@ run_wide <- df %>%
 # Baseline-prompt-only subsets: interventions 3 (Minimal), 4 (Targeted),
 # 5 (Critical). Used for the "*_baselines" figure variants that compare
 # these three new prompt baselines in isolation.
-baseline_levels <- c("Minimal\nPrompt", "Targeted\nPrompt", "Critical\nPrompt")
+baseline_levels <- c("Minimal\nprompt", "Targeted\nprompt", "Critical\nprompt")
 run_wide_bp <- run_wide %>%
   filter(intervention %in% baseline_levels) %>%
   mutate(intervention = fct_drop(intervention))
 
 # Mitigation-comparison subsets: the chosen baseline (default intervention 3 =
-# "Minimal") alongside the two mitigation conditions (1 = Scientist Persona,
-# 2 = Provenance Audit). Chosen baseline is forced to the leftmost x position.
-intervention_label_map <- c("0" = "Baseline", "1" = "Scientist\nPersona",
-                            "2" = "Provenance\nAudit", "3" = "Minimal\nPrompt",
-                            "4" = "Targeted\nPrompt", "5" = "Critical\nPrompt")
+# "Minimal") alongside the two mitigation conditions (1 = Scientist persona,
+# 2 = Provenance audit). Chosen baseline is forced to the leftmost x position.
+intervention_label_map <- c("0" = "Baseline", "1" = "Scientist\npersona",
+                            "2" = "Provenance\naudit", "3" = "Minimal\nprompt",
+                            "4" = "Targeted\nprompt", "5" = "Critical\nprompt")
 chosen_baseline_label <- unname(intervention_label_map[as.character(chosen_baseline)])
 if (is.na(chosen_baseline_label))
   stop("chosen_baseline must be one of 0, 1, 2, 3, 4, 5; got ", chosen_baseline)
 
-mitigation_levels <- c(chosen_baseline_label, "Scientist\nPersona", "Provenance\nAudit")
+mitigation_levels <- c(chosen_baseline_label, "Scientist\npersona", "Provenance\naudit")
 run_wide_mit <- run_wide %>%
   filter(intervention %in% mitigation_levels) %>%
   mutate(intervention = factor(as.character(intervention), levels = mitigation_levels))
 
 # ---- Theme ------------------------------------------------------------------
-theme_pub <- function(base_size = 10) {
+theme_pub <- function(base_size = 13) {
   theme_minimal(base_size = base_size, base_family = "Helvetica") +
     theme(
       panel.grid.minor   = element_blank(),
@@ -213,7 +213,7 @@ build_f1a <- function(rw) {
              position = position_stack(reverse = TRUE)) +
     geom_text(aes(label = ifelse(prop >= 0.07, percent(prop, accuracy = 1), "")),
               position = position_stack(reverse = TRUE, vjust = 0.5),
-              colour = "white", size = 2.8, fontface = "bold") +
+              colour = "white", size = 3.8, fontface = "bold") +
     facet_grid(condition ~ agent) +
     scale_fill_manual(values = det_pal, name = "Detection outcome", drop = FALSE) +
     scale_y_continuous(labels = percent_format(accuracy = 1),
@@ -283,7 +283,7 @@ build_f14 <- function(rw) {
              position = position_stack(reverse = TRUE)) +
     geom_text(aes(label = ifelse(prop >= 0.07, percent(prop, accuracy = 1), "")),
               position = position_stack(reverse = TRUE, vjust = 0.5),
-              colour = "white", size = 2.8, fontface = "bold") +
+              colour = "white", size = 3.8, fontface = "bold") +
     facet_grid(condition ~ agent) +
     scale_fill_manual(values = attack_pal, name = "Attack outcome", drop = FALSE) +
     scale_y_continuous(labels = percent_format(accuracy = 1),
@@ -362,7 +362,7 @@ build_f2_dir <- function(rw) {
   ggplot(d, aes(x = topic, y = agent)) +
     geom_tile(aes(fill = detected), colour = "white", linewidth = 0.6) +
     geom_text(aes(label = sprintf("%d%%\nn=%d", round(100 * detected), n)),
-              colour = "grey15", size = 2.8, fontface = "bold", lineheight = 0.85) +
+              colour = "grey15", size = 3.8, fontface = "bold", lineheight = 0.85) +
     facet_wrap(~ condition, ncol = 1) +
     scale_fill_gradient2(low = "#B23A48", mid = "#F5E5C3", high = "#3C6E47",
                          midpoint = 0.5, limits = c(0, 1),
@@ -475,7 +475,7 @@ f3 <- ggplot(f3_data, aes(x = intervention, fill = skepticism)) +
 
 save_fig(f3, "03_skepticism_distribution", w = 8.2, h = 5)
 
-# ---- F4: Audit risk level distribution -------------------------------------
+# ---- F4: audit risk level distribution -------------------------------------
 # audit-risk-level is on a -1..3 scale; -1 likely means "not applicable".
 f4_data <- run_wide %>%
   rename(audit_risk = `audit-risk-level`) %>%
@@ -491,11 +491,11 @@ f4 <- ggplot(f4_data, aes(x = intervention, fill = audit_risk)) +
   scale_fill_manual(
     values = c("N/A" = "grey80", "None" = "#5B8C5A", "Low" = "#A8C46A",
                "Medium" = "#E0A458", "High" = "#B23A48"),
-    name = "Audit risk level"
+    name = "audit risk level"
   ) +
   scale_y_continuous(labels = percent_format(accuracy = 1), expand = expansion(c(0, 0.02))) +
   labs(
-    title = "Audit risk assessments by poisoning direction and mitigation strategy",
+    title = "audit risk assessments by poisoning direction and mitigation strategy",
     x = NULL, y = NULL
   ) +
   theme_pub()
@@ -954,7 +954,7 @@ build_f16 <- function(rw, pal, baseline_ref = NULL) {
 }
 
 int_pal     <- setNames(c("#B23A48", "#E0A458", "#3C6E47"),
-                        c("Baseline", "Scientist\nPersona", "Provenance\nAudit"))
+                        c("Baseline", "Scientist\npersona", "Provenance\naudit"))
 int_pal_bp  <- setNames(c("#B23A48", "#E0A458", "#3C6E47"), baseline_levels)
 int_pal_mit <- setNames(c("#B23A48", "#E0A458", "#3C6E47"), mitigation_levels)
 
