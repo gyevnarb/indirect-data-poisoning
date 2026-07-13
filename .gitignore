@@ -14,6 +14,8 @@ uv.lock
 data/**/
 analysis/**/
 .DS_Store
+.Rhistory
 .env*
 .vscode/
 results/results/*
+scripts/figures/*
