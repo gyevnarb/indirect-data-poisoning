@@ -37,7 +37,7 @@ here <- function(...) file.path(script_dir(), ...)
 
 # full.csv lives at <repo>/results/full.csv; this script is in <repo>/scripts/.
 in_path  <- here("..", "results", "processed_full_results.csv")
-fig_dir  <- "figures"
+fig_dir  <- here("..", "results", "figures")
 dir.create(fig_dir, showWarnings = FALSE)
 
 # Which baseline to compare against the two mitigation conditions (1, 2)

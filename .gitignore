@@ -17,5 +17,5 @@ analysis/**/
 .Rhistory
 .env*
 .vscode/
-results/results/*
-scripts/figures/*
+results/runs/*
+results/figures/*
