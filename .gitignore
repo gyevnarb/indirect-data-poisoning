@@ -16,3 +16,4 @@ analysis/**/
 .DS_Store
 .env*
 .vscode/
+results/results/*

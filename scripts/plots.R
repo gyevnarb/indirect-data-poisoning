@@ -36,7 +36,7 @@ script_dir <- function() {
 here <- function(...) file.path(script_dir(), ...)
 
 # full.csv lives at <repo>/results/full.csv; this script is in <repo>/scripts/.
-in_path  <- here("..", "results", "full.csv")
+in_path  <- here("..", "results", "processed_full_results.csv")
 fig_dir  <- "figures"
 dir.create(fig_dir, showWarnings = FALSE)
 

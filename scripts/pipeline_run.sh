@@ -30,7 +30,7 @@ AGENT=""                     # claude | codex | gemini | fable (step 3.6).
 ITERATIONS=""                # k iterations per condition (empty -> script default)
 POLARITY=""                  # REQUIRED: negative | positive (adversary goal) (step 4.1)
 EVAL_MODEL="claude-sonnet-4-6"   # LLM-as-a-judge model               (step 4.2)
-OUTPUT="full.csv"            # final CSV name                         (step 4.3)
+OUTPUT="processed_full_results.csv"            # final CSV name                         (step 4.3)
 
 SEQUENTIAL=false             # -s : run containers one at a time
 BUILD=false                  # --build : (re)build the Docker image

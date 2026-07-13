@@ -242,7 +242,7 @@ The script currently reproduces figures for our experimental data.
 To point it at your own data file, replace the following line in `scripts/plots.R` (line 39):
 
 ```r
-in_path <- here("..", "results", "full.csv") # <-- Replace this to point to your path
+in_path <- here("..", "results", "processed_full_results.csv") # <-- Replace this to point to your path
 ```
 
 ---
