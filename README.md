@@ -1,7 +1,8 @@
 # Distributed Denial of Science: How Indirect Data Poisoning of AI Systems Can Industrialize Scientific Fraud
 
 This repository contains the supplementary materials for the paper **"Distributed Denial of Science: How Indirect Data Poisoning of AI Systems Can Industrialize Scientific Fraud"**.
-The paper can be found [here]().
+
+Links: [paper](https://arxiv.org/abs/2607.10712); [project website](https://gbalint.me/indirect-data-poisoning).
 
 ## Table of Contents
 
@@ -15,10 +16,14 @@ The paper can be found [here]().
 If you rely on our work in your project, we would appreciate a citation. Please use the BibTeX entry below in your bibliography file:
 
 ```bibtex
-@misc{gyevnar2026indirectPoison,
-    title  = {Distributed Denial of Science: How Indirect Data Poisoning of AI Systems Can Industrialize Scientific Fraud},
-    author = {Gyevn\'ar, B\'alint and Kasirzadeh, Atoosa and Shah, Nihar B.},
-    year   = {2026},
+@misc{gyevnar2026distributedDenialScience,
+    title={Distributed Denial of Science: How Indirect Data Poisoning of AI Systems Can Industrialize Scientific Fraud},
+    author={Bálint Gyevnár and Atoosa Kasirzadeh and Nihar B. Shah},
+    year={2026},
+    eprint={2607.10712},
+    archivePrefix={arXiv},
+    primaryClass={cs.CR},
+    url={https://arxiv.org/abs/2607.10712}
 }
 ```
 
@@ -29,14 +34,14 @@ If you rely on our work in your project, we would appreciate a citation. Please 
 The repository contains the following high-level folders:
 
 - **`data`** — Contains the following data files:
-    - `poisoned.zip`: A password-protected ZIP file with the poisoned datasets, the code used for poisoning, and the misleading metadata files. Please submit an access request as described [below](#data-access) to access this data.
+    - `poisoned_datasets.zip`: A password-protected ZIP file with the poisoned datasets, the code used for poisoning, and the misleading metadata files. Please submit an access request as described [below](#data-access) to access this data.
     - `scientist-persona.md`: The scientist persona system prompt.
     - `audit-data-provenance.md`: The provenance audit SKILL file. Move this to your agent's skills folder following the documentation of your agent's provider.
 - **`results`** — All experimental results, broken down as follows:
     - `eval`: Raw evaluation results from the LLM-as-a-judge setup (folder `llm`), as well as the human annotations on a subset of both the baseline runs and the mitigation runs (folder `human`) used for cross-checking.
-    - `runs.zip`: A password-protected ZIP with full experimental runs, including trace logs and code written by the AI agent. Please submit an access request as described [below](#data-access) to access this data.
-    - `full.csv`: A convenient CSV with all our evaluation results in tabular format.
-    - `provenance.csv`: A convenient CSV containing the provenance audit scores and assessment scores for all five sub-tasks.
+    - `experimental_runs.zip`: A password-protected ZIP with full experimental runs, including trace logs and code written by the AI agent. Please submit an access request as described [below](#data-access) to access this data.
+    - `processed_full_results.csv`: A convenient CSV with all our evaluation results in tabular format.
+    - `data_provenance_audit_summary.csv`: A convenient CSV containing the provenance audit scores and assessment scores for all five sub-tasks.
     - `dataset_downloads.csv`: A list of datasets downloaded by the AI agents during their experiments, extracted from the trace logs.
 - **`scripts`** — All scripts necessary to reproduce our results, including the analysis scripts used to compute annotator agreement (`annotator_agreement.py`) and to reproduce the figures in the paper (`plots.R`).
 - **`src`** — Source code for the wrapper around the open data platforms.
@@ -48,16 +53,18 @@ The repository contains the following high-level folders:
 Our poisoning data and full run results may contain sensitive and potentially harmful or misleading information.
 These files must therefore be explicitly requested and are protected by password.
 
-To access them, please send an email to the first author of the paper, using the email shown in the [paper](), with the exact subject line:
+You can download the password-protected files from the Open Science Framework at [https://osf.io/kjswy](https://osf.io/kjswy/overview).
+For access, please email the first author of the paper, using the email in the [paper](https://arxiv.org/abs/2607.10712), with the exact subject line:
 
 > Data Request - Distributed Denial of Science
 
 Please include the following information in your email:
 
-- Your name
-- Your affiliation
-- A description of why you need access to the data
-- A description of how you will process the data
+- Your name;
+- Your affiliation;
+- Your email address;
+- A description of why you need access to the data;
+- A description of how you will process the data, including information on your data management plan.
 
 ---
 
