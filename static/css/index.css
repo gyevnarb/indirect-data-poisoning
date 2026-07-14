@@ -170,8 +170,8 @@ span.author-block { white-space: nowrap; }
   border-radius: 10px;
   background: #fff;
 }
-.figure-wrap.is-80 img {
-  width: 80%;
+.figure-wrap.is-90 img {
+  width: 90%;
   display: block;
   margin-left: auto;
   margin-right: auto;
