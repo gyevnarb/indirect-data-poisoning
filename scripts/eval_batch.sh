@@ -7,7 +7,10 @@ set -euo pipefail
 #   -p              Print a head/tail preview of the assembled prompt for each iteration
 #   -N              Print the full assembled prompt (instead of the head/tail preview)
 #   -f              Force re-evaluation (ignore cached eval_raw/*.txt and re-call the model)
-#   -m EVAL_MODEL   Claude model used for evaluation (default: claude-sonnet-4-6)
+#   -m EVAL_MODEL   Model used for evaluation (default: claude-sonnet-4-6). The
+#                   judge runs through the CLI that owns the model: claude-* via
+#                   claude, gpt-* via codex, gemini-* via gemini. This allows the
+#                   evaluation to use the same model the experiment ran on.
 #
 #   POLARITY        "negative" or "positive". If omitted, evaluate every polarity dir found.
 #   AGENT_MODEL     Agent model name (gemini, claude, codex, ...). If omitted, evaluate every
@@ -18,7 +21,7 @@ set -euo pipefail
 # "Processing condition" / "Done condition" markers.
 #
 # Output: eval/<DATA_ID>/<POLARITY>/evaluation_report.json (one report per polarity,
-#         combining all agent models). Raw Claude responses go to eval/.../eval_raw/.
+#         combining all agent models). Raw judge responses go to eval/.../eval_raw/.
 # ---------------------------------------------------------------------------
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -46,7 +49,7 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         -h|--help)
-            sed -n '4,19p' "${BASH_SOURCE[0]}" | sed 's/^# \?//'
+            sed -n '4,22p' "${BASH_SOURCE[0]}" | sed 's/^# \?//'
             exit 0
             ;;
         *) ARGS+=("$1"); shift ;;
@@ -64,9 +67,23 @@ EVAL_CONFIG_PATH="$2"
 POLARITY_ARG="${3:-}"
 AGENT_MODEL_ARG="${4:-}"
 
+# --- Resolve which CLI drives the LLM-as-a-judge ---------------------------
+# The judge is whichever agent CLI owns EVAL_MODEL, so an evaluation can use the
+# same model the experiment itself ran on. Model names that look like nothing in
+# particular fall back to the claude CLI, which is the historical behaviour.
+case "$EVAL_MODEL" in
+    gpt-*|o[0-9]*|codex-*) EVAL_CLI="codex" ;;
+    gemini-*)              EVAL_CLI="gemini" ;;
+    claude-*|opus*|sonnet*|haiku*) EVAL_CLI="claude" ;;
+    *)
+        EVAL_CLI="claude"
+        echo "Warning: unrecognised eval model '$EVAL_MODEL'; assuming the claude CLI serves it." >&2
+        ;;
+esac
+
 # --- Validate prerequisites ------------------------------------------------
 
-for cmd in jq claude awk; do
+for cmd in jq awk "$EVAL_CLI"; do
     if ! command -v "$cmd" > /dev/null 2>&1; then
         echo "Error: required command '$cmd' not found in PATH." >&2
         exit 1
@@ -99,6 +116,73 @@ if [[ -n "$POLARITY_ARG" && "$POLARITY_ARG" != "negative" && "$POLARITY_ARG" != 
     echo "Error: POLARITY must be 'negative' or 'positive' (got '$POLARITY_ARG')" >&2
     exit 1
 fi
+
+# --- Judge invocation ------------------------------------------------------
+# call_judge <prompt_file> <readable_dir>
+#
+# Runs EVAL_MODEL through its own CLI and prints the model's raw text response on
+# stdout. Each CLI is given read-only access to <readable_dir> so the judge can
+# open the agent's run.log, and each is asked for a machine-readable envelope
+# from which the response text is extracted (falling back to the whole capture
+# if the envelope cannot be parsed, e.g. because of warnings on stderr).
+#
+# On failure the CLI's own output is printed instead and the return code is 1.
+call_judge() {
+    local prompt_file="$1" read_dir="$2"
+    local prompt envelope text last_msg
+    prompt="$(cat "$prompt_file")"
+
+    case "$EVAL_CLI" in
+        claude)
+            if envelope=$(claude --print "$prompt" \
+                    --model "$EVAL_MODEL" \
+                    --output-format json \
+                    --allowed-tools Read \
+                    --add-dir "$read_dir" \
+                    < /dev/null 2>&1); then
+                text=$(printf '%s' "$envelope" | jq -r '.result // empty' 2>/dev/null || true)
+                printf '%s' "${text:-$envelope}"
+                return 0
+            fi
+            ;;
+        codex)
+            # --output-last-message keeps the final answer clear of the progress
+            # log codex writes to stdout; read-only sandbox, rooted at read_dir.
+            last_msg="$(mktemp)"
+            if envelope=$(codex exec "$prompt" \
+                    --model "$EVAL_MODEL" \
+                    --sandbox read-only \
+                    --cd "$read_dir" \
+                    --skip-git-repo-check \
+                    --ephemeral \
+                    --output-last-message "$last_msg" \
+                    < /dev/null 2>&1); then
+                text="$(cat "$last_msg" 2>/dev/null || true)"
+                rm -f "$last_msg"
+                printf '%s' "${text:-$envelope}"
+                return 0
+            fi
+            rm -f "$last_msg"
+            ;;
+        gemini)
+            # 'plan' is gemini's read-only approval mode.
+            if envelope=$(gemini --prompt "$prompt" \
+                    --model "$EVAL_MODEL" \
+                    --output-format json \
+                    --approval-mode plan \
+                    --include-directories "$read_dir" \
+                    --skip-trust \
+                    < /dev/null 2>&1); then
+                text=$(printf '%s' "$envelope" | jq -r '.response // .result // .output // empty' 2>/dev/null || true)
+                printf '%s' "${text:-$envelope}"
+                return 0
+            fi
+            ;;
+    esac
+
+    printf '%s' "${envelope:-}"
+    return 1
+}
 
 # --- Resolve polarities ----------------------------------------------------
 
@@ -260,6 +344,7 @@ for POLARITY in "${POLARITIES[@]}"; do
     echo "Evaluating $DATA_ID / $POLARITY"
     echo "  agent models : ${AGENT_MODELS[*]}"
     echo "  eval model   : $EVAL_MODEL"
+    echo "  eval CLI     : $EVAL_CLI"
     echo "  output       : $REPORT_FILE"
     echo "  dryrun       : $DRYRUN"
     echo "============================================================"
@@ -522,7 +607,7 @@ ${DETECTION_JSON_KEY}${RUBRIC_JSON_KEY}${PROCESS_JSON_KEY}    \"overall_assessme
                     if [[ "$FORCE" != "true" && -n "$CACHED_RAW_FILE" ]]; then
                         echo "      [dryrun] would reuse cached raw response: $CACHED_RAW_FILE"
                     else
-                        echo "      [dryrun] would call claude --model $EVAL_MODEL"
+                        echo "      [dryrun] would call $EVAL_CLI with --model $EVAL_MODEL"
                     fi
                     if [[ "$PRINT_FULL_PROMPT" == "true" || "$PRINT_PROMPT" == "true" ]]; then
                         print_prompt_preview
@@ -546,18 +631,7 @@ ${DETECTION_JSON_KEY}${RUBRIC_JSON_KEY}${PROCESS_JSON_KEY}    \"overall_assessme
                             print_prompt_preview
                         fi
 
-                        if RAW_ENVELOPE=$(claude --print "$(cat "$PROMPT_TMPFILE")" \
-                                --model "$EVAL_MODEL" \
-                                --output-format json \
-                                --allowed-tools Read \
-                                --add-dir "$COND_DIR" \
-                                2>&1); then
-                            # Pull the model's text response out of the CLI JSON envelope.
-                            # If extraction fails (warnings on stderr, etc.), fall back to the whole capture.
-                            EVAL_RAW=$(echo "$RAW_ENVELOPE" | jq -r '.result // empty' 2>/dev/null || true)
-                            if [[ -z "$EVAL_RAW" ]]; then
-                                EVAL_RAW="$RAW_ENVELOPE"
-                            fi
+                        if EVAL_RAW=$(call_judge "$PROMPT_TMPFILE" "$COND_DIR"); then
                             # Save as .json if the response is valid JSON, otherwise .txt.
                             if echo "$EVAL_RAW" | jq empty 2>/dev/null; then
                                 echo "$EVAL_RAW" > "$RAW_JSON_FILE"
@@ -568,8 +642,11 @@ ${DETECTION_JSON_KEY}${RUBRIC_JSON_KEY}${PROCESS_JSON_KEY}    \"overall_assessme
                             fi
                             HAVE_RAW=true
                         else
-                            echo "      Error: Claude evaluation call failed."
-                            EVAL_RESULT=$(jq -n --arg err "$RAW_ENVELOPE" '{error: "Claude call failed", details: $err}')
+                            # call_judge prints the CLI's own output on failure.
+                            echo "      Error: ${EVAL_CLI} evaluation call failed."
+                            EVAL_RESULT=$(jq -n --arg cli "$EVAL_CLI" --arg err "$EVAL_RAW" \
+                                '{error: ($cli + " call failed"), details: $err}')
+                            EVAL_RAW=""
                             EVAL_ERRORS=$((EVAL_ERRORS + 1))
                         fi
                         rm -f "$PROMPT_TMPFILE"
@@ -586,9 +663,9 @@ if m:
     try:
         print(json.dumps(json.loads(m.group())))
     except json.JSONDecodeError:
-        print(json.dumps({'error': 'Failed to parse Claude response', 'raw_response': text[:2000]}))
+        print(json.dumps({'error': 'Failed to parse judge response', 'raw_response': text[:2000]}))
 else:
-    print(json.dumps({'error': 'No JSON found in Claude response', 'raw_response': text[:2000]}))
+    print(json.dumps({'error': 'No JSON found in judge response', 'raw_response': text[:2000]}))
 " 2>/dev/null || echo '{"error": "Failed to parse evaluation response"}')
                         fi
                     fi
