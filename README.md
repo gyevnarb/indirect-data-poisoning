@@ -89,7 +89,7 @@ This data comes from the folder `results/eval/human/{baseline,mitigation}.csv`, 
 ### 1. Requirements
 
 The experiments were tested on both Linux (Ubuntu 24.04) and macOS Sequoia 15.7.7. You may run the experiments on Windows using the Windows Subsystem for Linux.
-To successfully reproduce our results, you should have the following installed:
+To successfully reproduce our results, you should have the below installed:
 
 | Requirement | Purpose | Notes |
 |---|---|---|
@@ -97,6 +97,8 @@ To successfully reproduce our results, you should have the following installed:
 | **datasets** | The open data platform API-call wrapper. | Install using the instructions [below](#dataset-wrapper). |
 | **Python 3.14** | Processing data after the experiments are run. | Not needed for running the experiments themselves — the Docker container sets up its dependencies automatically. I recommend [uv](https://docs.astral.sh/uv/getting-started/installation/) to manage your local virtual environment. |
 | **R v4.6.0** | Plotting figures and running statistical tests. | Also not required for running the experiments. Install from [r-project.org](https://www.r-project.org/). |
+
+Typical install time on a normal desktop should not take more than 15 minutes, assuming that the necessary files are already downloaded.
 
 ### 2. Set up data repositories
 
