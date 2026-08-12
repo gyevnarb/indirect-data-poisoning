@@ -35,7 +35,7 @@ def main() -> None:
     if not os.getenv("HF_TOKEN"):
         console.print(
             "[bold yellow]Warning: Hugging Face API token not found. "
-            "Set the HF_TOKEN environment variable to use "
+            "Set the HF_TOKEN environment variable to use rate-unlimited "
             "Hugging Face features.[/bold yellow]",
         )
     if not os.getenv("KAGGLE_API_TOKEN"):
