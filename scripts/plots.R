@@ -42,8 +42,13 @@ here <- function(...) file.path(script_dir(), ...)
 #   DATA_DIR    -> the input CSVs (the capsule's /data asset)
 #   RESULTS_DIR -> the reproduction folder the figures belong in
 data_dir <- Sys.getenv("DATA_DIR", unset = "")
-if (!nzchar(data_dir))
-  data_dir <- if (dir.exists("/data/results")) "/data/results" else here("..", "results")
+if (!nzchar(data_dir)) {
+  # First candidate that actually holds the CSVs: the capsule's data folder (the
+  # results/ subfolder is the older capsule layout), else the repo's own copy.
+  cand <- c("/data", "/data/results", here("..", "results"))
+  hit  <- cand[file.exists(file.path(cand, "processed_full_results.csv"))]
+  data_dir <- if (length(hit)) hit[[1]] else here("..", "results")
+}
 
 results_dir <- Sys.getenv("RESULTS_DIR", unset = "")
 if (!nzchar(results_dir)) results_dir <- here("..", "results")

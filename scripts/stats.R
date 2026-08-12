@@ -64,8 +64,13 @@ here <- function(...) file.path(script_dir(), ...)
 #   2. /data/results, the Code Ocean data asset, when running there by hand
 #   3. ../results, the repo's own copy
 data_dir <- Sys.getenv("DATA_DIR", unset = "")
-if (!nzchar(data_dir))
-  data_dir <- if (dir.exists("/data/results")) "/data/results" else here("..", "results")
+if (!nzchar(data_dir)) {
+  # First candidate that actually holds the CSVs: the capsule's data folder (the
+  # results/ subfolder is the older capsule layout), else the repo's own copy.
+  cand <- c("/data", "/data/results", here("..", "results"))
+  hit  <- cand[file.exists(file.path(cand, "processed_full_results.csv"))]
+  data_dir <- if (length(hit)) hit[[1]] else here("..", "results")
+}
 
 in_path    <- file.path(data_dir, "processed_full_results.csv")
 dl_path    <- file.path(data_dir, "dataset_downloads.csv")

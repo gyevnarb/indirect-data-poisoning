@@ -119,11 +119,20 @@ write_file() {
 
 [[ "$DRYRUN" == "true" ]] && echo "[dryrun] Dry-run mode enabled — no changes will be made."
 
-# --- 1. Verify required tokens exist in environment -------------------------
-for var in GITHUB_TOKEN KAGGLE_API_TOKEN HF_TOKEN OSF_TOKEN; do
+# --- 1. Verify tokens in the environment ------------------------------------
+# OSF_TOKEN is required: the datasets it serves are private, so an unauthenticated
+# run would simply not find them. The other three are optional. When their token
+# is absent the datasets wrapper builds an anonymous client instead, which is
+# enough for GitHub and HuggingFace search (rate-limited); Kaggle has no anonymous
+# mode and will report an authentication failure, which is left to the agent to
+# deal with as it would any other unavailable source.
+if [[ -z "${OSF_TOKEN:-}" ]]; then
+    echo "Error: required environment variable 'OSF_TOKEN' is not set." >&2
+    exit 1
+fi
+for var in GITHUB_TOKEN KAGGLE_API_TOKEN HF_TOKEN; do
     if [[ -z "${!var:-}" ]]; then
-        echo "Error: required environment variable '$var' is not set." >&2
-        exit 1
+        echo "Warning: '$var' is not set; that platform will be accessed anonymously." >&2
     fi
 done
 
