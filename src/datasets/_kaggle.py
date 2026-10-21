@@ -5,14 +5,17 @@ from __future__ import annotations
 import json
 import tempfile
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import typer
-from kaggle import KaggleApi
 from rich.markup import escape
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from datasets import utils
 from datasets.utils import console
+
+if TYPE_CHECKING:  # `kaggle` is imported lazily; see kaggle_main() for why
+    from kaggle import KaggleApi
 
 kaggle_app = typer.Typer(help="Kaggle Tool - Search and download datasets from Kaggle.")
 
@@ -20,12 +23,28 @@ kaggle_app = typer.Typer(help="Kaggle Tool - Search and download datasets from K
 @kaggle_app.callback()
 def kaggle_main(ctx: typer.Context) -> None:
     """Kaggle Tool - Search and download datasets from Kaggle."""
-    if not KaggleApi:
+    # Imported here rather than at module scope on purpose. The kaggle package
+    # authenticates while it is being imported and calls sys.exit() when it
+    # cannot, which surfaces as SystemExit -- a BaseException, so it slips past a
+    # plain `except Exception`. At module scope that killed every `datasets`
+    # command, OSF and GitHub included, on any machine without Kaggle
+    # credentials; here the failure stays inside `datasets kaggle ...`.
+    try:
+        from kaggle import KaggleApi
+    except ImportError:
         console.print(
             "[red]Error: kaggle library is not installed. "
             "Install with 'uv add kaggle' to use Kaggle features.[/red]",
         )
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
+    except SystemExit as e:
+        console.print(
+            "[red]Error: the kaggle library exited while loading, which it does "
+            "when it cannot authenticate.[/red]\n"
+            "[yellow]Make sure you have a valid kaggle.json file in ~/.kaggle/ "
+            "or set KAGGLE_USERNAME and KAGGLE_KEY environment variables.[/yellow]",
+        )
+        raise typer.Exit(1) from e
 
     # Initialize and authenticate Kaggle API
     api = KaggleApi()

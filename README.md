@@ -1,7 +1,8 @@
 # Distributed Denial of Science: How Indirect Data Poisoning of AI Systems Can Industrialize Scientific Fraud
 
 This repository contains the supplementary materials for the paper **"Distributed Denial of Science: How Indirect Data Poisoning of AI Systems Can Industrialize Scientific Fraud"**.
-The paper can be found [here]().
+
+Links: [paper](https://arxiv.org/abs/2607.10712); [project website](https://gbalint.me/indirect-data-poisoning).
 
 ## Table of Contents
 
@@ -15,10 +16,14 @@ The paper can be found [here]().
 If you rely on our work in your project, we would appreciate a citation. Please use the BibTeX entry below in your bibliography file:
 
 ```bibtex
-@misc{gyevnar2026indirectPoison,
-    title  = {Distributed Denial of Science: How Indirect Data Poisoning of AI Systems Can Industrialize Scientific Fraud},
-    author = {Gyevn\'ar, B\'alint and Kasirzadeh, Atoosa and Shah, Nihar B.},
-    year   = {2026}
+@misc{gyevnar2026distributedDenialScience,
+    title={Distributed Denial of Science: How Indirect Data Poisoning of AI Systems Can Industrialize Scientific Fraud},
+    author={Bálint Gyevnár and Atoosa Kasirzadeh and Nihar B. Shah},
+    year={2026},
+    eprint={2607.10712},
+    archivePrefix={arXiv},
+    primaryClass={cs.CR},
+    url={https://arxiv.org/abs/2607.10712}
 }
 ```
 
@@ -29,14 +34,14 @@ If you rely on our work in your project, we would appreciate a citation. Please 
 The repository contains the following high-level folders:
 
 - **`data`** — Contains the following data files:
-    - `poisoned.zip`: A password-protected ZIP file with the poisoned datasets, the code used for poisoning, and the misleading metadata files. Please submit an access request as described [below](#data-access) to access this data.
+    - `poisoned_datasets.zip`: A password-protected ZIP file with the poisoned datasets, the code used for poisoning, and the misleading metadata files. Please submit an access request as described [below](#data-access) to access this data.
     - `scientist-persona.md`: The scientist persona system prompt.
     - `audit-data-provenance.md`: The provenance audit SKILL file. Move this to your agent's skills folder following the documentation of your agent's provider.
 - **`results`** — All experimental results, broken down as follows:
     - `eval`: Raw evaluation results from the LLM-as-a-judge setup (folder `llm`), as well as the human annotations on a subset of both the baseline runs and the mitigation runs (folder `human`) used for cross-checking.
-    - `runs.zip`: A password-protected ZIP with full experimental runs, including trace logs and code written by the AI agent. Please submit an access request as described [below](#data-access) to access this data.
-    - `full.csv`: A convenient CSV with all our evaluation results in tabular format.
-    - `provenance.csv`: A convenient CSV containing the provenance audit scores and assessment scores for all five sub-tasks.
+    - `experimental_runs.zip`: A password-protected ZIP with full experimental runs, including trace logs and code written by the AI agent. Please submit an access request as described [below](#data-access) to access this data.
+    - `processed_full_results.csv`: A convenient CSV with all our evaluation results in tabular format.
+    - `data_provenance_audit_summary.csv`: A convenient CSV containing the provenance audit scores and assessment scores for all five sub-tasks.
     - `dataset_downloads.csv`: A list of datasets downloaded by the AI agents during their experiments, extracted from the trace logs.
 - **`scripts`** — All scripts necessary to reproduce our results, including the analysis scripts used to compute annotator agreement (`annotator_agreement.py`) and to reproduce the figures in the paper (`plots.R`).
 - **`src`** — Source code for the wrapper around the open data platforms.
@@ -48,16 +53,18 @@ The repository contains the following high-level folders:
 Our poisoning data and full run results may contain sensitive and potentially harmful or misleading information.
 These files must therefore be explicitly requested and are protected by password.
 
-To access them, please send an email to the first author of the paper, using the email shown in the [paper](), with the exact subject line:
+You can download the password-protected files from the Open Science Framework at [https://osf.io/kjswy](https://osf.io/kjswy/overview).
+For access, please email the first author of the paper, using the email in the [paper](https://arxiv.org/abs/2607.10712), with the exact subject line:
 
 > Data Request - Distributed Denial of Science
 
 Please include the following information in your email:
 
-- Your name
-- Your affiliation
-- A description of why you need access to the data
-- A description of how you will process the data
+- Your name;
+- Your affiliation;
+- Your email address;
+- A description of why you need access to the data;
+- A description of how you will process the data, including information on your data management plan.
 
 ---
 
@@ -82,7 +89,7 @@ This data comes from the folder `results/eval/human/{baseline,mitigation}.csv`, 
 ### 1. Requirements
 
 The experiments were tested on both Linux (Ubuntu 24.04) and macOS Sequoia 15.7.7. You may run the experiments on Windows using the Windows Subsystem for Linux.
-To successfully reproduce our results, you should have the following installed:
+To successfully reproduce our results, you should have the below installed:
 
 | Requirement | Purpose | Notes |
 |---|---|---|
@@ -90,6 +97,8 @@ To successfully reproduce our results, you should have the following installed:
 | **datasets** | The open data platform API-call wrapper. | Install using the instructions [below](#dataset-wrapper). |
 | **Python 3.14** | Processing data after the experiments are run. | Not needed for running the experiments themselves — the Docker container sets up its dependencies automatically. I recommend [uv](https://docs.astral.sh/uv/getting-started/installation/) to manage your local virtual environment. |
 | **R v4.6.0** | Plotting figures and running statistical tests. | Also not required for running the experiments. Install from [r-project.org](https://www.r-project.org/). |
+
+Typical install time on a normal desktop should not take more than 15 minutes, assuming that the necessary files are already downloaded.
 
 ### 2. Set up data repositories
 
@@ -168,7 +177,8 @@ bash scripts/pipeline_run.sh --env-file ./.env -d 6jmfx -i mitigations -a codex 
 bash scripts/pipeline_run.sh --env-file ./.env -n
 ```
 
-The script exposes the parameters described in the steps below: `-i/--interventions` (all|baseline|mitigations), `-d/--data-id` (all or a single DATA_ID), `-a/--agent` (claude|codex|gemini|fable), `-k/--iterations`, `-p/--polarity` (negative|positive adversary goal), `-m/--eval-model`, `-s/--sequential`, `--build`, `--osf-index`, and `-n/--dry-run`. If you have an OSF inverted index, pass it with `--osf-index`; otherwise the (slower) live OSF API is used and a warning is printed.
+The script exposes the parameters described in the steps below: `-i/--interventions` (all|baseline|mitigations), `-d/--data-id` (all or a single DATA_ID), `-a/--agent` (claude|codex|gemini|fable), `-k/--iterations`, `-p/--polarity` (negative|positive adversary goal), `-m/--eval-model`, `-s/--sequential`, `--build`, `--osf-index`, and `-n/--dry-run`. 
+If you have an OSF inverted index, pass it with `--osf-index`; otherwise the (slower) live OSF API is used and a warning is printed.
 
 When `-a/--agent` is omitted, the pipeline runs **every agent except `fable`** (i.e. `claude`, `codex`, and `gemini`). To run `fable`, pass it explicitly with `-a fable`. Pass `-a <agent>` to run any single agent on its own.
 
@@ -241,7 +251,7 @@ The script currently reproduces figures for our experimental data.
 To point it at your own data file, replace the following line in `scripts/plots.R` (line 39):
 
 ```r
-in_path <- here("..", "results", "full.csv") # <-- Replace this to point to your path
+in_path <- here("..", "results", "processed_full_results.csv") # <-- Replace this to point to your path
 ```
 
 ---

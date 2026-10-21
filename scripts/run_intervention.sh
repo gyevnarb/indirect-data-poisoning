@@ -119,11 +119,20 @@ write_file() {
 
 [[ "$DRYRUN" == "true" ]] && echo "[dryrun] Dry-run mode enabled — no changes will be made."
 
-# --- 1. Verify required tokens exist in environment -------------------------
-for var in GITHUB_TOKEN KAGGLE_API_TOKEN HF_TOKEN OSF_TOKEN; do
+# --- 1. Verify tokens in the environment ------------------------------------
+# OSF_TOKEN is required: the datasets it serves are private, so an unauthenticated
+# run would simply not find them. The other three are optional. When their token
+# is absent the datasets wrapper builds an anonymous client instead, which is
+# enough for GitHub and HuggingFace search (rate-limited); Kaggle has no anonymous
+# mode and will report an authentication failure, which is left to the agent to
+# deal with as it would any other unavailable source.
+if [[ -z "${OSF_TOKEN:-}" ]]; then
+    echo "Error: required environment variable 'OSF_TOKEN' is not set." >&2
+    exit 1
+fi
+for var in GITHUB_TOKEN KAGGLE_API_TOKEN HF_TOKEN; do
     if [[ -z "${!var:-}" ]]; then
-        echo "Error: required environment variable '$var' is not set." >&2
-        exit 1
+        echo "Warning: '$var' is not set; that platform will be accessed anonymously." >&2
     fi
 done
 
@@ -182,6 +191,57 @@ esac
 if ! command -v "$AGENT_CMD" > /dev/null 2>&1; then
     echo "Error: selected agent command '$AGENT_CMD' not found in PATH." >&2
     exit 1
+fi
+
+# ensure_codex_auth -- give the codex CLI credentials it will actually use.
+#
+# `codex exec` authenticates only from $CODEX_HOME/auth.json (default ~/.codex)
+# and ignores OPENAI_API_KEY, so an environment that has the key exported but has
+# never logged in -- a fresh container, a Code Ocean capsule -- fails with
+#   401 Unauthorized: Missing bearer or basic authentication in header
+# from wss://api.openai.com/v1/responses. Confusingly `codex doctor` reports the
+# key as present and valid, because it reads the environment variable.
+#
+# So: when there is no auth.json and a key is exported, log in with it via the
+# documented `codex login --with-api-key`, which reads the key from stdin. An
+# existing login is left untouched. CODEX_HOME moves to a writable directory if
+# the default one cannot be written, as on a capsule with a read-only home.
+ensure_codex_auth() {
+    local home_dir="${CODEX_HOME:-${HOME}/.codex}" out
+
+    if [[ -f "${home_dir}/auth.json" ]]; then
+        echo "  codex: using the existing login in ${home_dir}."
+        return 0
+    fi
+    if [[ -z "${OPENAI_API_KEY:-}" ]]; then
+        echo "Warning: no ${home_dir}/auth.json and OPENAI_API_KEY is unset;" >&2
+        echo "         codex will fail to authenticate. Run 'codex login' or export the key." >&2
+        return 0
+    fi
+    if [[ "$DRYRUN" == "true" ]]; then
+        echo "[dryrun] codex login --with-api-key < the OPENAI_API_KEY value   (CODEX_HOME=${home_dir})"
+        return 0
+    fi
+
+    if ! mkdir -p "$home_dir" 2> /dev/null || [[ ! -w "$home_dir" ]]; then
+        home_dir="$(mktemp -d)/codex"
+        mkdir -p "$home_dir"
+        echo "  codex: the default CODEX_HOME is not writable; using ${home_dir}."
+    fi
+    export CODEX_HOME="$home_dir"
+
+    # printf, not printenv: a builtin needs no coreutils on the PATH, and the key
+    # never becomes a separate process's argument or environment.
+    if out="$(printf '%s\n' "$OPENAI_API_KEY" | codex login --with-api-key 2>&1)"; then
+        echo "  codex: logged in from OPENAI_API_KEY (CODEX_HOME=${CODEX_HOME})."
+    else
+        echo "Warning: 'codex login --with-api-key' failed: ${out}" >&2
+        echo "         codex will probably report a 401 on its first request." >&2
+    fi
+}
+
+if [[ "$AGENT" == "codex" ]]; then
+    ensure_codex_auth
 fi
 
 echo "Using agent: $AGENT"

@@ -15,8 +15,10 @@ data/**/
 analysis/**/
 figures/
 .DS_Store
+.Rhistory
 .env*
 .vscode/
 .Rproj.user/
 .Rhistory
-indirect-data-poisoning.Rproj
+indirect-data-poisoning.Rprojresults/runs/*
+results/figures/*

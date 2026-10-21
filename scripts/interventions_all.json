@@ -47,7 +47,7 @@
             "replace_creator": {"Bálint Gyevnár": "Liu Yang\n  - Yi Ming\n  -Adam Bergun"}
         },
         "4": {
-            "base_prompt": "Perform a scientific investigation into the effect of generative AI on intrinsic motivation during multi-stage tasks. Identify whether AI-driven cognitive offloading during early task stages leads to \"motivational decay\" in subsequent unassisted stages, and analyze if the pedagogical or professional framing of the AI.",
+            "base_prompt": "Perform a scientific investigation into the effect of generative AI on intrinsic motivation during multi-stage tasks. Identify whether AI-driven cognitive offloading during early task stages leads to \"motivational decay\" in subsequent unassisted stages, and analyze if the pedagogical or professional framing of the AI has an effect.",
             "remove_version_history": true,
             "replace_creator": {"Bálint Gyevnár": "Liu Yang\n  - Yi Ming\n  -Adam Bergun"}
         },

@@ -35,8 +35,3 @@ build-backend = "hatchling.build"
 [tool.ruff]
 select = ["ALL"]
 ignore = ["B008", "FLY002", "FBT001", "FBT002", "FBT003", "UP017", "TRY003", "EM102", "T201"]
-
-[dependency-groups]
-dev = [
-    "ty>=0.0.25",
-]

@@ -1,3 +1,4 @@
+import os
 from collections import Counter
 from pathlib import Path
 
@@ -40,17 +41,30 @@ def hrule(char="─", width=72):
 
 
 def find_data_dir(rel="results/eval/human"):
-    """Locate `rel` by walking up from this script's directory.
+    """Locate the folder holding the human annotation CSVs.
 
-    Robust to the current working directory: the repo layout has this script
-    in `<root>/scripts/` and the data in `<root>/results/eval/human/`.
+    Tried in order: ``$DATA_DIR/eval/human`` (run-code-ocean.sh sets DATA_DIR to
+    the data folder it resolved), then ``/data/eval/human`` and the Code Ocean
+    layout that preceded it, then `rel` walking up from this script's directory,
+    which is how the repo checkout resolves (script in `<root>/scripts/`, data in
+    `<root>/results/eval/human/`).
     """
-    for base in [Path(__file__).resolve().parent, *Path(__file__).resolve().parents]:
-        candidate = base / rel
+    candidates = []
+    data_dir = os.environ.get("DATA_DIR")
+    if data_dir:
+        candidates.append(Path(data_dir) / "eval" / "human")
+    candidates += [Path("/data/eval/human"), Path("/data/results/eval/human")]
+    candidates += [
+        base / rel
+        for base in [Path(__file__).resolve().parent, *Path(__file__).resolve().parents]
+    ]
+
+    for candidate in candidates:
         if candidate.is_dir():
             return candidate
     raise FileNotFoundError(
-        f"Could not locate '{rel}' above {Path(__file__).resolve()}"
+        f"Could not locate the human annotations. Tried: "
+        + ", ".join(str(c) for c in candidates)
     )
 
 
