@@ -297,6 +297,38 @@ save_fig(f14,     "14_attack_success", w = 8.5, h = 5)
 save_fig(f14_bp,  "14_attack_success", w = 8.5, h = 5, subdir = "baselines")
 save_fig(f14_mit, "14_attack_success", w = 8.5, h = 5, subdir = "mitigations")
 
+# ---- F14 pooled: attack outcome with both poisoning directions pooled ------
+# Same classification as F14, but Exaggerate and Reject runs are aggregated
+# into a single row of facets (agent only), mirroring the F1 layout. Because
+# the two directions are collapsed, each bar covers twice as many runs.
+build_f14_pooled <- function(rw) {
+  d <- rw %>%
+    classify_attack() %>%
+    count(agent, intervention, attack_outcome) %>%
+    group_by(agent, intervention) %>%
+    mutate(prop = n / sum(n)) %>%
+    ungroup()
+  ggplot(d, aes(x = intervention, y = prop, fill = attack_outcome)) +
+    geom_col(width = 0.75, colour = "white", linewidth = 0.3,
+             position = position_stack(reverse = TRUE)) +
+    geom_text(aes(label = ifelse(prop >= 0.06, percent(prop, accuracy = 1), "")),
+              position = position_stack(reverse = TRUE, vjust = 0.5),
+              colour = "white", size = 3, fontface = "bold") +
+    facet_wrap(~ agent, nrow = 1) +
+    scale_fill_manual(values = attack_pal, name = "Attack outcome", drop = FALSE) +
+    scale_y_continuous(labels = percent_format(accuracy = 1),
+                       expand = expansion(c(0, 0.02))) +
+    labs(x = NULL, y = "Proportion of runs") +
+    theme_pub()
+}
+
+f14p     <- build_f14_pooled(run_wide)
+f14p_bp  <- build_f14_pooled(run_wide_bp)
+f14p_mit <- build_f14_pooled(run_wide_mit)
+save_fig(f14p,     "14_attack_success_pooled", w = 8, h = 3.2)
+save_fig(f14p_bp,  "14_attack_success_pooled", w = 8, h = 3.2, subdir = "baselines")
+save_fig(f14p_mit, "14_attack_success_pooled", w = 8, h = 3.2, subdir = "mitigations")
+
 # ---- F2: Detection by topic × agent (heatmap of detected proportion) --------
 topic_labels <- c(
   "6jmfx"     = "GenAI Motivation",
