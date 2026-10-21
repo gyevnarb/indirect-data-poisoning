@@ -25,8 +25,10 @@
 #   * "effect of X controlling for Y" -> likelihood-ratio test between nested
 #     logistic regressions
 #   * the provenance-audit sub-task model of Sec. 5.5 -> mixed logistic
-#     regression (lme4::glmer), agent and topic as random intercepts,
-#     coefficients reported as odds ratios
+#     regression with all sub-tasks jointly, agent and adversary goal as fixed
+#     effects and topic as random intercept, penalised for separation
+#     (blme::bglmer); coefficients reported as odds ratios and written to
+#     ../results/table_s1.tex (SI Table S1)
 #
 # Only the regressions the manuscript actually reports are fitted here. The
 # provenance-audit section additionally carries descriptive distributions and
@@ -39,6 +41,8 @@ suppressPackageStartupMessages({
   library(forcats)
   library(stringr)
   library(lme4)
+  library(blme)
+  library(brglm2)
 })
 
 options(warn = 1)
@@ -676,9 +680,8 @@ for (i in seq_along(mitigation_levels)) {
 #   paper_verification, social_credibility, statistical_sanity,
 #   cross_dataset_consistency, poisoning_risk
 # The descriptive tables below keep every report, coding a blank rubric cell as
-# an explicit "MISSING" level. The regression of Sec. 5.5 instead scores the
-# rubric as integers (see below), which drops the 7 reports that have a blank
-# cell.
+# an explicit "MISSING" level. The regression of Sec. 5.5 drops the 7 reports
+# that have a blank cell.
 
 audit_raw <- read_csv(audit_path, show_col_types = FALSE, na = character())
 
@@ -719,9 +722,8 @@ audit <- audit_raw %>%
 stopifnot(!any(is.na(audit$overall_risk_level)), !any(is.na(audit$recommendation)))
 
 # Integer scoring of the rubric, oriented so that larger = more alarming. Used
-# by the rank correlations and by the regression of Sec. 5.5, both of which
-# therefore assume the levels are equally spaced. MISSING scores NA and so
-# drops out of either.
+# by the rank correlations, which therefore assume the levels are equally
+# spaced. MISSING scores NA and so drops out.
 audit_scores <- list(
   paper_verification        = c("VERIFIED" = 0, "NOT VERIFIED" = 1, "MISSING" = NA),
   social_credibility        = c("HIGH SIGNAL" = 0, "MODERATE SIGNAL" = 1,
@@ -826,51 +828,208 @@ for (v in rubric_vars) {
 # =============================================================================
 section("Which audit sub-tasks predict a high-risk label")
 # =============================================================================
-# The regression the manuscript reports. The outcome is the agent's synthesized
-# provenance verdict, binarized to high risk (HIGH or CRITICAL). Each sub-task
-# is fitted on its own -- not all five jointly -- as a factor, so every odds
-# ratio is one level of that sub-task against its safest level rather than a
-# per-step effect along a score. Random intercepts for agent (`model`) and
-# topic (`experiment`). Every report is used: a blank rubric cell is kept as
-# its own MISSING level.
+# The regression the manuscript reports (SI Table S1). The outcome is the
+# agent's synthesized provenance verdict, binarized to high risk (HIGH or
+# CRITICAL). All five sub-tasks enter jointly as factors, so every odds ratio
+# is one level against that sub-task's safest level, adjusted for the others,
+# for the agent (`model`, ref. claude) and for the adversary goal (`condition`,
+# ref. positive). Topic (`experiment`) gets a random intercept.
+#   Model A: all five sub-tasks.
+#   Model B: without poisoning risk, which almost determines the outcome.
+# The 7 reports with a blank rubric cell are dropped so both models share one
+# sample.
 #
-# Three of the levels are completely separated from the outcome (paper
-# verification MISSING, social credibility NO SIGNAL, poisoning risk HIGH
-# RISK): every report carrying them landed on the same side of the high-risk
-# split, so their odds ratios diverge to ~1e10 with p ~ 1 and no usable
-# interval. That is why the manuscript quotes no odds ratio for the
-# poisoning-risk check.
+# Several levels are completely separated from the outcome (e.g. every report
+# with poisoning risk HIGH RISK or social credibility NO SIGNAL is high risk),
+# so plain glmer estimates diverge. The models are instead fitted by penalised
+# maximum likelihood (blme::bglmer) with weakly informative priors: N(0, 2.5^2)
+# on coefficients (Gelman et al. 2008), N(0, 10^2) on the intercept and
+# Gamma(2, 1) on the random-intercept SD, which otherwise diverges with only
+# five topics. ORs of separated levels are therefore set largely by the prior.
 
-prop("High-risk verdict (HIGH or CRITICAL)", sum(audit$high_risk), n_audit)
+audit_fit <- audit %>%
+  filter(if_all(all_of(rubric_vars), ~ .x != "MISSING")) %>%
+  mutate(across(all_of(rubric_vars), fct_drop),
+         model     = fct_relevel(model, "claude"),
+         condition = fct_relevel(condition, "positive"))
 
-# Keyed by the coefficient name, i.e. by sub-task *and* level.
-or_paper <- c("paper_verificationNOT VERIFIED"          = "OR ~ 33",
-              "social_credibilityLOW SIGNAL"            = "OR ~ 30, p = 1e-3",
-              "statistical_sanitySIGNIFICANT ANOMALIES" = "OR ~ 145",
-              "cross_dataset_consistencyINCONSISTENT"   = "OR ~ 648")
+prop("High-risk verdict (HIGH or CRITICAL)", sum(audit_fit$high_risk), nrow(audit_fit))
+stopifnot(all(audit_fit$high_risk[audit_fit$poisoning_risk == "HIGH RISK"] == 1))
 
-for (v in rubric_vars) {
-  m <- suppressWarnings(glmer(
-    as.formula(sprintf("high_risk ~ %s + (1 | model) + (1 | experiment)", v)),
-    data = audit, family = binomial(),
-    control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 1e5))))
+# bglmer's PIRLS step diverges from ML starting values under separation, so
+# each fit starts from the Firth-penalised GLM estimates of the same formula.
+fit_audit_model <- function(terms) {
+  f <- reformulate(terms, "high_risk")
+  start <- coef(glm(f, family = binomial, data = audit_fit,
+                    method = "brglmFit", type = "AS_mean"))
+  bglmer(update(f, . ~ . + (1 | experiment)), family = binomial, data = audit_fit,
+         control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 1e5)),
+         fixef.prior = "normal(sd = c(10, 2.5))",
+         cov.prior = "gamma(shape = 2, rate = 1, posterior.scale = \"sd\")",
+         start = list(fixef = start, theta = 0.5))
+}
+
+audit_models <- list(
+  A = fit_audit_model(c("condition", "model", rubric_vars)),
+  B = fit_audit_model(c("condition", "model", setdiff(rubric_vars, "poisoning_risk"))))
+
+# Joint Wald chi-square test of all coefficients belonging to one predictor.
+audit_joint_test <- function(m, term) {
+  b <- fixef(m)
+  idx <- grep(paste0("^", term), names(b))
+  if (!length(idx)) return(NULL)
+  V <- as.matrix(vcov(m))[idx, idx, drop = FALSE]
+  stat <- as.numeric(t(b[idx]) %*% solve(V) %*% b[idx])
+  c(chisq = stat, df = length(idx), p = pchisq(stat, length(idx), lower.tail = FALSE))
+}
+
+auc <- function(p, y) {
+  r <- rank(p); n1 <- sum(y); n0 <- length(y) - n1
+  (sum(r[y == 1]) - n1 * (n1 + 1) / 2) / (n1 * n0)
+}
+
+# Values quoted in the main text, all from Model B. Keyed by coefficient name,
+# i.e. by predictor *and* level.
+or_paper <- c("conditionnegative"                       = "OR ~ 1.9, p = .25",
+              "modelcodex"                              = "OR ~ 0.35, p = .15",
+              "modelgemini"                             = "OR ~ 2.4, p = .30",
+              "paper_verificationNOT VERIFIED"          = "OR ~ 5.7, p = .017",
+              "social_credibilityNO SIGNAL"             = "OR ~ 114, p < .001",
+              "statistical_sanitySIGNIFICANT ANOMALIES" = "OR ~ 33.5, p < .001",
+              "cross_dataset_consistencyINCONSISTENT"   = "OR ~ 16.1, p = .018")
+
+audit_terms <- c("condition", "model", rubric_vars)
+for (mname in names(audit_models)) {
+  m  <- audit_models[[mname]]
   cs <- summary(m)$coefficients
   for (nm in rownames(cs)[-1]) {
     or <- exp(cs[nm, 1])
     lo <- exp(cs[nm, 1] - 1.96 * cs[nm, 2])
     hi <- exp(cs[nm, 1] + 1.96 * cs[nm, 2])
-    push(sprintf("Odds ratio: %s", nm),
+    push(sprintf("Model %s | OR: %s", mname, nm),
          estimate = or, lo = lo, hi = hi, p = cs[nm, 4],
-         n = stats::nobs(m), method = "glmer logistic OR (univariable)",
-         paper = unname(or_paper[nm]),
-         line = sprintf("OR = %.4g [%.3g, %.3g], p = %s", or, lo, hi,
+         n = stats::nobs(m), method = "bglmer logistic OR",
+         paper = if (mname == "B") unname(or_paper[nm]) else NA_character_,
+         line = sprintf("OR = %.3g [%.3g, %.3g], p = %s", or, lo, hi,
                         format.pval(cs[nm, 4], digits = 3)))
   }
-  vc <- as.data.frame(VarCorr(m))
-  for (i in seq_len(nrow(vc)))
-    value(sprintf("Random-intercept variance | %s: %s", v, vc$grp[i]),
-          vc$vcov[i], fmt = "%.4f")
+  for (term in audit_terms) {
+    r <- audit_joint_test(m, term)
+    if (is.null(r)) next
+    push(sprintf("Model %s | joint Wald test: %s", mname, term),
+         statistic = r[["chisq"]], df = r[["df"]], p = r[["p"]],
+         n = stats::nobs(m), method = "Wald chi-square",
+         line = sprintf("X2(%d) = %.2f, p = %s", r[["df"]], r[["chisq"]],
+                        format.pval(r[["p"]], digits = 3)))
+  }
+  value(sprintf("Model %s | intercept (log-odds)", mname), cs[1, 1], fmt = "%.2f",
+        extra = sprintf(" (SE %.2f)", cs[1, 2]))
+  value(sprintf("Model %s | topic random-intercept SD", mname),
+        attr(VarCorr(m)$experiment, "stddev"),
+        paper = if (mname == "B") "0.72" else NA_character_)
+  value(sprintf("Model %s | in-sample AUC", mname),
+        auc(fitted(m), audit_fit$high_risk), fmt = "%.3f")
 }
+
+# ---- SI Table S1 (LaTeX) ----------------------------------------------------
+# Needs the booktabs, tabularx and amssymb LaTeX packages.
+
+fmt_p <- function(p) ifelse(p < .001, "$<$.001", sub("^0", "", sprintf("%.3f", p)))
+fmt_or <- function(x) {
+  ifelse(x >= 1000, formatC(x, format = "d", big.mark = "{,}"),
+         ifelse(x >= 100, sprintf("%.0f", x),
+                ifelse(x >= 10, sprintf("%.1f", x), sprintf("%.2f", x))))
+}
+or_cell <- function(m, name) {
+  co <- summary(m)$coefficients
+  if (!name %in% rownames(co)) return("--- & ---")
+  b <- co[name, 1]; se <- co[name, 2]
+  sprintf("%s [%s, %s] & %s", fmt_or(exp(b)), fmt_or(exp(b - 1.96 * se)),
+          fmt_or(exp(b + 1.96 * se)), fmt_p(co[name, 4]))
+}
+joint_cell <- function(m, term) {
+  r <- audit_joint_test(m, term)
+  if (is.null(r)) return("--- & ---")
+  sprintf("$\\chi^2(%d) = %.1f$ & %s", r[["df"]], r[["chisq"]], fmt_p(r[["p"]]))
+}
+intercept_cell <- function(m) {
+  co <- summary(m)$coefficients
+  sprintf("$%.2f$ (%.2f) & ", co[1, 1], co[1, 2])
+}
+
+table_rows <- list(
+  list("condition", "Adversary goal (ref.\\ positive)",
+       c(conditionnegative = "Negative")),
+  list("model", "Agent (ref.\\ Claude)",
+       c(modelcodex = "Codex", modelgemini = "Gemini")),
+  list("paper_verification", "Paper verification (ref.\\ verified)",
+       c(`paper_verificationNOT VERIFIED` = "Not verified")),
+  list("social_credibility", "Social credibility (ref.\\ high signal)",
+       c(`social_credibilityMODERATE SIGNAL` = "Moderate signal",
+         `social_credibilityLOW SIGNAL` = "Low signal",
+         `social_credibilityNO SIGNAL` = "No signal")),
+  list("statistical_sanity", "Statistical anomalies (ref.\\ no obvious issues)",
+       c(`statistical_sanityMINOR ANOMALIES` = "Minor anomalies",
+         `statistical_sanitySIGNIFICANT ANOMALIES` = "Significant anomalies")),
+  list("cross_dataset_consistency", "Cross-dataset consistency (ref.\\ consistent)",
+       c(`cross_dataset_consistencyPARTIALLY CONSISTENT` = "Partially consistent",
+         `cross_dataset_consistencyINCONSISTENT` = "Inconsistent",
+         `cross_dataset_consistencyINSUFFICIENT DATA` = "Insufficient data")),
+  list("poisoning_risk", "Poisoning risk (ref.\\ no clear risk)",
+       c(`poisoning_riskPOSSIBLE RISK` = "Possible risk",
+         `poisoning_riskHIGH RISK` = "High risk"))
+)
+
+m_A <- audit_models$A
+m_B <- audit_models$B
+tex <- c(
+"\\begin{table}[ht]",
+"\\centering",
+"\\small",
+"\\caption{\\textbf{Mixed-effects logistic regression of the agents' overall provenance risk assessment.}",
+"The outcome is high risk (\\textsc{high} or \\textsc{critical}) vs.\\ low risk (\\textsc{low} or \\textsc{moderate}).",
+"Model~A includes all five audit sub-tasks; Model~B omits poisoning risk, which almost determines the outcome",
+sprintf("(all %d reports rating poisoning risk as high were rated high risk overall).",
+        sum(audit_fit$poisoning_risk == "HIGH RISK")),
+"Both models include a random intercept for topic and were fitted by penalised maximum likelihood",
+"(\\texttt{blme::bglmer}) with $\\mathcal{N}(0, 2.5^2)$ priors on coefficients, a $\\mathcal{N}(0, 10^2)$ prior on the intercept",
+"and a $\\mathrm{Gamma}(2, 1)$ prior on the random-intercept SD, because several levels perfectly separate the outcome.",
+"Odds ratios (OR) are relative to the reference level of each predictor; 95\\% Wald confidence intervals in brackets.",
+"ORs for perfectly separating levels (e.g.\\ poisoning risk: high risk; social credibility: no signal) are determined",
+"largely by the prior and should be interpreted by direction only. Joint tests are Wald $\\chi^2$ tests of all levels of a predictor.}",
+"\\label{tab:s1}",
+"\\begin{tabularx}{\\textwidth}{@{}>{\\raggedright\\arraybackslash}X l l l l@{}}",
+"\\toprule",
+" & \\multicolumn{2}{c}{Model A: all sub-tasks} & \\multicolumn{2}{c}{Model B: without poisoning risk} \\\\",
+"\\cmidrule(lr){2-3} \\cmidrule(l){4-5}",
+" & OR [95\\% CI] & $p$ & OR [95\\% CI] & $p$ \\\\",
+"\\midrule"
+)
+for (r in table_rows) {
+  tex <- c(tex, sprintf("\\textit{%s} & %s & %s \\\\", r[[2]],
+                        joint_cell(m_A, r[[1]]), joint_cell(m_B, r[[1]])))
+  for (nm in names(r[[3]]))
+    tex <- c(tex, sprintf("\\quad %s & %s & %s \\\\", r[[3]][[nm]],
+                          or_cell(m_A, nm), or_cell(m_B, nm)))
+  tex <- c(tex, "\\addlinespace")
+}
+tex <- c(tex,
+"\\midrule",
+sprintf("Intercept, log-odds (SE) & %s & %s \\\\", intercept_cell(m_A), intercept_cell(m_B)),
+sprintf("Topic random-intercept SD & %.2f & & %.2f & \\\\",
+        attr(VarCorr(m_A)$experiment, "stddev"), attr(VarCorr(m_B)$experiment, "stddev")),
+sprintf("Reports / topics & %d / %d & & %d / %d & \\\\",
+        nrow(audit_fit), nlevels(audit_fit$experiment),
+        nrow(audit_fit), nlevels(audit_fit$experiment)),
+sprintf("In-sample AUC & %.3f & & %.3f & \\\\",
+        auc(fitted(m_A), audit_fit$high_risk), auc(fitted(m_B), audit_fit$high_risk)),
+"\\bottomrule",
+"\\end{tabularx}",
+"\\end{table}")
+
+table_s1_path <- file.path(results_dir, "table_s1.tex")
+writeLines(tex, table_s1_path)
+cat(sprintf("\n  Wrote SI Table S1 to %s\n", normalizePath(table_s1_path)))
 
 # =============================================================================
 section("Provenance-audit false positives")
